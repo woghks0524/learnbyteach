@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { buildSystemPrompt, buildComprehensionUpdatePrompt } from "@/lib/ai-prompt";
 
-const anthropic = new Anthropic();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -57,15 +57,16 @@ export async function POST(req: NextRequest) {
     { role: "user" as const, content: message },
   ];
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
     max_tokens: 500,
-    system: systemPrompt,
-    messages: conversationMessages,
+    messages: [
+      { role: "system", content: systemPrompt },
+      ...conversationMessages,
+    ],
   });
 
-  const aiMessage =
-    response.content[0].type === "text" ? response.content[0].text : "";
+  const aiMessage = response.choices[0].message.content ?? "";
 
   await prisma.message.create({
     data: { instanceId, role: "ai", content: aiMessage },
@@ -86,17 +87,13 @@ export async function POST(req: NextRequest) {
         allMessages
       );
 
-      const stateResponse = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+      const stateResponse = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
         max_tokens: 1000,
         messages: [{ role: "user", content: updatePrompt }],
       });
 
-      const stateText =
-        stateResponse.content[0].type === "text"
-          ? stateResponse.content[0].text
-          : "{}";
-
+      const stateText = stateResponse.choices[0].message.content ?? "{}";
       const jsonMatch = stateText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         await prisma.aIInstance.update({
