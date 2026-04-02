@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { buildSystemPrompt } from "@/lib/ai-prompt";
 
-const anthropic = new Anthropic();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(
   _req: NextRequest,
@@ -84,14 +84,16 @@ export async function POST(
   });
 
   // AI 첫 인사
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
     max_tokens: 300,
-    system: systemPrompt,
-    messages: [{ role: "user", content: "안녕!" }],
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: "안녕!" },
+    ],
   });
 
-  const greeting = response.content[0].type === "text" ? response.content[0].text : "안녕하세요 선생님!";
+  const greeting = response.choices[0].message.content ?? "안녕하세요 선생님!";
 
   await prisma.message.create({
     data: { instanceId: instance.id, role: "ai", content: greeting },

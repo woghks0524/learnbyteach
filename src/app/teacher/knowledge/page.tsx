@@ -199,7 +199,7 @@ export default function KnowledgeManagementPage() {
       )}
 
       {/* 파일 목록 + 미리보기 */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="col-span-1 space-y-2">
           {files.length === 0 ? (
             <div className="bg-white rounded-xl p-6 text-center text-sm text-gray-500">

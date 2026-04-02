@@ -211,7 +211,7 @@ export default function CourseDetailPage() {
       )}
 
       {activeTab === "conversations" && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             {course.instances.length === 0 ? (
               <div className="bg-white rounded-xl p-4 text-center text-sm text-gray-500">

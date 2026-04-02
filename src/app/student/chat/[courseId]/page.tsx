@@ -9,6 +9,12 @@ interface Message {
   createdAt?: string;
 }
 
+interface CourseInfo {
+  name: string;
+  subject: string;
+  unit: string;
+}
+
 export default function ChatPage() {
   const { courseId } = useParams();
   const router = useRouter();
@@ -18,21 +24,29 @@ export default function ChatPage() {
   const [instanceId, setInstanceId] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [courseInfo, setCourseInfo] = useState<CourseInfo | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const startSession = async () => {
       try {
-        const res = await fetch(`/api/instances/${courseId}/start`, { method: "POST" });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({ error: "서버 오류" }));
+        const [sessionRes, courseRes] = await Promise.all([
+          fetch(`/api/instances/${courseId}/start`, { method: "POST" }),
+          fetch(`/api/courses/${courseId}`),
+        ]);
+        if (!sessionRes.ok) {
+          const errData = await sessionRes.json().catch(() => ({ error: "서버 오류" }));
           setError(errData.error || "세션을 시작할 수 없습니다");
           setInitializing(false);
           return;
         }
-        const data = await res.json();
+        const data = await sessionRes.json();
         setInstanceId(data.instanceId);
         setMessages(data.messages || []);
+        if (courseRes.ok) {
+          const course = await courseRes.json();
+          setCourseInfo({ name: course.name, subject: course.subject, unit: course.unit });
+        }
       } catch {
         setError("서버에 연결할 수 없습니다");
       } finally {
@@ -113,8 +127,10 @@ export default function ChatPage() {
             &larr;
           </button>
           <div>
-            <h1 className="font-semibold">AI 학생에게 가르치기</h1>
-            <p className="text-xs text-gray-500">개념을 설명해주세요. AI 학생이 질문하고 배울 거예요!</p>
+            <h1 className="font-semibold">{courseInfo?.name || "AI 학생에게 가르치기"}</h1>
+            <p className="text-xs text-gray-500">
+              {courseInfo ? `${courseInfo.subject} · ${courseInfo.unit}` : "개념을 설명해주세요. AI 학생이 질문하고 배울 거예요!"}
+            </p>
           </div>
         </div>
       </div>

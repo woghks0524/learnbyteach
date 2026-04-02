@@ -83,7 +83,7 @@ export default function StudentManagementPage() {
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <input
-                type="text"
+                type="password"
                 value={s.password}
                 onChange={(e) => updateRow(i, "password", e.target.value)}
                 placeholder="비밀번호"

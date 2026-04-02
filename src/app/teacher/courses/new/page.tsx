@@ -26,6 +26,8 @@ export default function NewCoursePage() {
   });
   const [knowledgeFiles, setKnowledgeFiles] = useState<KnowledgeFile[]>([]);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/knowledge").then((r) => r.json()).then(setKnowledgeFiles);
@@ -44,20 +46,33 @@ export default function NewCoursePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const res = await fetch("/api/courses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        knownTopics: form.knownTopics.split(",").map((s) => s.trim()).filter(Boolean),
-        unknownTopics: form.unknownTopics.split(",").map((s) => s.trim()).filter(Boolean),
-        misconceptions: form.misconceptions.split("\n").map((s) => s.trim()).filter(Boolean),
-        knowledgeFileIds: selectedFileIds,
-      }),
-    });
+    try {
+      const res = await fetch("/api/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          knownTopics: form.knownTopics.split(",").map((s) => s.trim()).filter(Boolean),
+          unknownTopics: form.unknownTopics.split(",").map((s) => s.trim()).filter(Boolean),
+          misconceptions: form.misconceptions.split("\n").map((s) => s.trim()).filter(Boolean),
+          knowledgeFileIds: selectedFileIds,
+        }),
+      });
 
-    if (res.ok) router.push("/teacher");
+      if (res.ok) {
+        router.push("/teacher");
+      } else {
+        const data = await res.json();
+        setError(data.error || "수업 개설에 실패했습니다. 다시 시도해주세요.");
+      }
+    } catch {
+      setError("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const update = (field: string, value: string) =>
@@ -76,6 +91,12 @@ export default function NewCoursePage() {
       </button>
       <h1 className="text-2xl font-bold mb-6">수업 개설</h1>
 
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 space-y-5">
         <div className="space-y-4">
           <h2 className="font-semibold text-gray-800 border-b pb-2">수업 정보</h2>
@@ -90,7 +111,7 @@ export default function NewCoursePage() {
               required
             />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">과목</label>
               <input
@@ -262,8 +283,8 @@ export default function NewCoursePage() {
           <button type="button" onClick={() => router.back()} className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
             취소
           </button>
-          <button type="submit" className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
-            개설하기
+          <button type="submit" disabled={loading} className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50">
+            {loading ? "개설 중..." : "개설하기"}
           </button>
         </div>
       </form>

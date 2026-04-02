@@ -72,9 +72,9 @@ export async function POST(req: NextRequest) {
     data: { instanceId, role: "ai", content: aiMessage },
   });
 
-  // 이해도 상태 업데이트 (매 10개 메시지마다)
+  // 이해도 상태 업데이트 (매 5번 대화마다 = 10개 메시지)
   const totalMessages = instance.messages.length + 2;
-  if (totalMessages % 10 === 0) {
+  if (totalMessages % 5 === 0) {
     try {
       const allMessages = [
         ...instance.messages.map((m) => ({ role: m.role, content: m.content })),
