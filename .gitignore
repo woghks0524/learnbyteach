@@ -40,6 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
+# Prisma generated client을 보통은 무시하지만,
+# 현재 `prisma generate`가 ESM 충돌로 깨져있어서 수동 패치된 client를 commit해야 배포 가능.
+# Prisma 도구 살아나면(Node 20.19+로 업그레이드 후 prisma@7.8+) 이 라인 다시 켜고 generated 무시.
+# /src/generated/prisma
 *.db
 scripts/test-results*.json
+supabase/
