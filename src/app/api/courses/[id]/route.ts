@@ -40,6 +40,12 @@ export async function GET(
         include: {
           student: { select: { id: true, name: true, email: true } },
           messages: { orderBy: { createdAt: "asc" } },
+          stepProgress: {
+            include: {
+              step: true,
+              _count: { select: { messages: true } },
+            },
+          },
         },
       },
     },
@@ -49,5 +55,22 @@ export async function GET(
     return NextResponse.json({ error: "수업을 찾을 수 없습니다" }, { status: 404 });
   }
 
-  return NextResponse.json(course);
+  // 각 인스턴스에 'stuck' 플래그: 현재 단계에서 minMessages 초과했는데 완료 안 됨
+  const withStuck = {
+    ...course,
+    instances: course.instances.map((inst) => {
+      const currentProgress = inst.stepProgress.find((p) => p.stepId === inst.currentStepId);
+      const stuck =
+        currentProgress != null &&
+        !currentProgress.completed &&
+        currentProgress._count.messages > currentProgress.step.minMessages;
+      return {
+        ...inst,
+        stuck,
+        currentStepTitle: currentProgress?.step.title ?? null,
+      };
+    }),
+  };
+
+  return NextResponse.json(withStuck);
 }

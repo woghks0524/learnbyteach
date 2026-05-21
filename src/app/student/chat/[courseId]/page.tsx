@@ -7,6 +7,7 @@ interface Message {
   role: string;
   content: string;
   createdAt?: string;
+  kind?: "normal" | "transition";
 }
 
 interface CourseInfo {
@@ -14,6 +15,22 @@ interface CourseInfo {
   subject: string;
   unit: string;
 }
+
+interface LessonStep {
+  id: string;
+  order: number;
+  title: string;
+  aiName: string;
+  aiAvatar: string;
+}
+
+const AVATAR_EMOJI: Record<string, string> = {
+  default: "🧑‍🎓",
+  curious: "🤓",
+  shy: "😶",
+  challenger: "😤",
+  sleepy: "😴",
+};
 
 export default function ChatPage() {
   const { courseId } = useParams();
@@ -25,6 +42,9 @@ export default function ChatPage() {
   const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [courseInfo, setCourseInfo] = useState<CourseInfo | null>(null);
+  const [steps, setSteps] = useState<LessonStep[]>([]);
+  const [currentStep, setCurrentStep] = useState<LessonStep | null>(null);
+  const [allStepsCompleted, setAllStepsCompleted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -43,6 +63,8 @@ export default function ChatPage() {
         const data = await sessionRes.json();
         setInstanceId(data.instanceId);
         setMessages(data.messages || []);
+        if (data.steps) setSteps(data.steps);
+        if (data.currentStep) setCurrentStep(data.currentStep);
         if (courseRes.ok) {
           const course = await courseRes.json();
           setCourseInfo({ name: course.name, subject: course.subject, unit: course.unit });
@@ -81,7 +103,15 @@ export default function ChatPage() {
       }
 
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "ai", content: data.message }]);
+      setMessages((prev) => {
+        const next = [...prev, { role: "ai", content: data.message }];
+        if (data.transitionMessage) {
+          next.push({ role: "ai", content: data.transitionMessage, kind: "transition" });
+        }
+        return next;
+      });
+      if (data.newStep) setCurrentStep(data.newStep);
+      if (data.allStepsCompleted) setAllStepsCompleted(true);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -126,28 +156,69 @@ export default function ChatPage() {
           <button onClick={() => router.push("/student")} className="text-gray-500 hover:text-gray-700">
             &larr;
           </button>
-          <div>
-            <h1 className="font-semibold">{courseInfo?.name || "AI 학생에게 가르치기"}</h1>
-            <p className="text-xs text-gray-500">
+          <div className="flex-1 min-w-0">
+            <h1 className="font-semibold truncate">{courseInfo?.name || "AI 학생에게 가르치기"}</h1>
+            <p className="text-xs text-gray-500 truncate">
               {courseInfo ? `${courseInfo.subject} · ${courseInfo.unit}` : "개념을 설명해주세요. AI 학생이 질문하고 배울 거예요!"}
             </p>
           </div>
+          {currentStep && steps.length > 0 && (
+            <div className="text-right">
+              <div className="flex items-center gap-1.5 justify-end">
+                <span className="text-xl">{AVATAR_EMOJI[currentStep.aiAvatar] ?? "🧑‍🎓"}</span>
+                <span className="text-sm font-medium text-gray-700">{currentStep.aiName}</span>
+              </div>
+              <p className="text-xs text-blue-600 mt-0.5">
+                단계 {currentStep.order}/{steps.length} · {currentStep.title}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "student" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-sm px-4 py-2.5 rounded-2xl ${
-              msg.role === "student"
-                ? "bg-blue-600 text-white rounded-br-md"
-                : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
-            }`}>
-              {msg.role === "ai" && <p className="text-xs text-gray-400 mb-1">AI 학생</p>}
-              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+        {messages.map((msg, i) => {
+          if (msg.kind === "transition") {
+            return (
+              <div key={i} className="flex flex-col items-center gap-1 py-2">
+                <div className="flex items-center gap-2 text-xs text-blue-600">
+                  <span className="h-px w-8 bg-blue-200" />
+                  <span>다음 단계로 넘어왔어요</span>
+                  <span className="h-px w-8 bg-blue-200" />
+                </div>
+                <div className="max-w-sm px-4 py-2.5 rounded-2xl bg-blue-50 border border-blue-200 text-gray-800">
+                  <p className="text-xs text-blue-500 mb-1">
+                    {currentStep ? `${AVATAR_EMOJI[currentStep.aiAvatar] ?? "🧑‍🎓"} ${currentStep.aiName}` : "AI 학생"}
+                  </p>
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div key={i} className={`flex ${msg.role === "student" ? "justify-end" : "justify-start"}`}>
+              <div className={`max-w-sm px-4 py-2.5 rounded-2xl ${
+                msg.role === "student"
+                  ? "bg-blue-600 text-white rounded-br-md"
+                  : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
+              }`}>
+                {msg.role === "ai" && (
+                  <p className="text-xs text-gray-400 mb-1">
+                    {currentStep ? `${AVATAR_EMOJI[currentStep.aiAvatar] ?? "🧑‍🎓"} ${currentStep.aiName}` : "AI 학생"}
+                  </p>
+                )}
+                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              </div>
+            </div>
+          );
+        })}
+        {allStepsCompleted && (
+          <div className="flex justify-center py-3">
+            <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-full text-sm text-green-700">
+              🎉 모든 단계 완료! 수고하셨어요
             </div>
           </div>
-        ))}
+        )}
         {loading && (
           <div className="flex justify-start">
             <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-2xl rounded-bl-md">

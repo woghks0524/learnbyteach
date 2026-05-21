@@ -64,7 +64,7 @@ model Course {
   gradeLevel  String
   description String?
 
-  // AI 학생 설정
+  // AI 학생 기본 설정 (단계별 설정이 없을 때 fallback)
   comprehensionLevel String @default("medium")
   personality        String @default("curious")
   knownTopics        String @default("[]")
@@ -78,6 +78,47 @@ model Course {
   enrollments    CourseEnrollment[]
   instances      AIInstance[]
   knowledgeFiles CourseKnowledgeFile[]
+  steps          LessonStep[]
+}
+
+// ===== 수업 단계 (교사가 설계) =====
+model LessonStep {
+  id          String   @id @default(cuid())
+  courseId    String
+  order       Int      // 단계 순서 (1, 2, 3...)
+  title       String   // 단계 이름 (예: "사실 탐색")
+  description String?  // 단계 설명/목표
+
+  // AI 페르소나
+  aiName       String  @default("AI 학생")
+  aiAvatar     String  @default("default") // 아바타 키 (default/curious/challenger/shy)
+  aiPersonality String @default("curious") // "passive" | "curious" | "challenging"
+  aiFocus      String? // 이 단계에서 집중할 개념/질문 방향 (교사가 직접 입력)
+
+  // 단계 완료 조건
+  completionCriteria String? // 학생이 무엇을 설명해야 이 단계가 끝나는지 (AI 자가판정 기준)
+  minMessages  Int     @default(6) // 안전망: 이 횟수 초과해도 완료 안 되면 '막힌 학생'으로 표시
+
+  createdAt DateTime @default(now())
+
+  course             Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress           StepProgress[]
+  currentInstances   AIInstance[]   // 현재 이 단계에 있는 학생 인스턴스들
+}
+
+// ===== 학생별 단계 진행 상태 =====
+model StepProgress {
+  id         String   @id @default(cuid())
+  instanceId String
+  stepId     String
+  completed  Boolean  @default(false)
+  messages   Message[]
+  createdAt  DateTime @default(now())
+
+  instance AIInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  step     LessonStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([instanceId, stepId])
 }
 
 // ===== 수업 등록 =====
@@ -101,21 +142,26 @@ model AIInstance {
   createdAt  DateTime @default(now())
 
   comprehensionState String @default("{}")
+  currentStepId      String? // 현재 진행 중인 단계
 
-  course   Course    @relation(fields: [courseId], references: [id])
-  student  User      @relation(fields: [studentId], references: [id])
-  messages Message[]
+  course       Course         @relation(fields: [courseId], references: [id])
+  student      User           @relation(fields: [studentId], references: [id])
+  currentStep  LessonStep?    @relation(fields: [currentStepId], references: [id], onDelete: SetNull)
+  messages     Message[]
+  stepProgress StepProgress[]
 
   @@unique([courseId, studentId])
 }
 
 // ===== 대화 메시지 =====
 model Message {
-  id         String   @id @default(cuid())
-  instanceId String
-  role       String   // "student" | "ai"
-  content    String
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  instanceId     String
+  stepProgressId String?  // 어느 단계의 대화인지
+  role           String   // "student" | "ai"
+  content        String
+  createdAt      DateTime @default(now())
 
-  instance AIInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  instance     AIInstance    @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  stepProgress StepProgress? @relation(fields: [stepProgressId], references: [id])
 }
