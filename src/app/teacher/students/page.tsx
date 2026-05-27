@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { EMAIL_DOMAIN, toEmail } from "@/lib/constants";
 
 export default function StudentManagementPage() {
   const router = useRouter();
-  const [students, setStudents] = useState([{ name: "", email: "", password: "" }]);
+  const [students, setStudents] = useState([{ name: "", username: "", password: "" }]);
   const [results, setResults] = useState<{ email: string; success: boolean; error?: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const addRow = () => setStudents((prev) => [...prev, { name: "", email: "", password: "" }]);
+  const addRow = () => setStudents((prev) => [...prev, { name: "", username: "", password: "" }]);
 
   const updateRow = (index: number, field: string, value: string) => {
     setStudents((prev) => prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
@@ -25,7 +26,7 @@ export default function StudentManagementPage() {
     setLoading(true);
     setResults([]);
 
-    const valid = students.filter((s) => s.name && s.email && s.password);
+    const valid = students.filter((s) => s.name && s.username && s.password);
     if (valid.length === 0) {
       setLoading(false);
       return;
@@ -34,7 +35,9 @@ export default function StudentManagementPage() {
     const res = await fetch("/api/students", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ students: valid }),
+      body: JSON.stringify({
+        students: valid.map((s) => ({ name: s.name, email: toEmail(s.username), password: s.password })),
+      }),
     });
 
     const data = await res.json();
@@ -75,13 +78,16 @@ export default function StudentManagementPage() {
                 placeholder="이름"
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <input
-                type="text"
-                value={s.email}
-                onChange={(e) => updateRow(i, "email", e.target.value)}
-                placeholder="이메일"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="flex-1 flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500">
+                <input
+                  type="text"
+                  value={s.username}
+                  onChange={(e) => updateRow(i, "username", e.target.value)}
+                  placeholder="아이디 (학번 등)"
+                  className="flex-1 min-w-0 px-3 py-2 bg-transparent rounded-l-lg text-sm focus:outline-none"
+                />
+                <span className="px-2 text-xs text-gray-400 select-none whitespace-nowrap">@{EMAIL_DOMAIN}</span>
+              </div>
               <input
                 type="password"
                 value={s.password}

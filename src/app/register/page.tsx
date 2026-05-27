@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { EMAIL_DOMAIN, toEmail } from "@/lib/constants";
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "student" });
+  const [form, setForm] = useState({ name: "", username: "", password: "", role: "student" });
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -16,7 +17,12 @@ export default function RegisterPage() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        name: form.name,
+        email: toEmail(form.username),
+        password: form.password,
+        role: form.role,
+      }),
     });
 
     if (res.ok) {
@@ -46,14 +52,18 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-1">아이디</label>
+            <div className="flex items-center border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-blue-500">
+              <input
+                type="text"
+                value={form.username}
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
+                placeholder="아이디 (예: 학번)"
+                className="flex-1 min-w-0 px-3 py-2 bg-transparent rounded-l-lg focus:outline-none"
+                required
+              />
+              <span className="px-3 text-sm text-gray-400 select-none whitespace-nowrap">@{EMAIL_DOMAIN}</span>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">비밀번호</label>
