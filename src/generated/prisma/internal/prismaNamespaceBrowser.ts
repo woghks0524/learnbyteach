@@ -139,7 +139,6 @@ export const LessonStepScalarFieldEnum = {
   order: 'order',
   title: 'title',
   description: 'description',
-  activityType: 'activityType',
   aiName: 'aiName',
   aiAvatar: 'aiAvatar',
   aiPersonality: 'aiPersonality',

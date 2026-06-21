@@ -192,6 +192,7 @@ export type AIInstanceWhereInput = {
   currentStepId?: Prisma.StringNullableFilter<"AIInstance"> | string | null
   course?: Prisma.XOR<Prisma.CourseScalarRelationFilter, Prisma.CourseWhereInput>
   student?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  currentStep?: Prisma.XOR<Prisma.LessonStepNullableScalarRelationFilter, Prisma.LessonStepWhereInput> | null
   messages?: Prisma.MessageListRelationFilter
   stepProgress?: Prisma.StepProgressListRelationFilter
 }
@@ -205,6 +206,7 @@ export type AIInstanceOrderByWithRelationInput = {
   currentStepId?: Prisma.SortOrderInput | Prisma.SortOrder
   course?: Prisma.CourseOrderByWithRelationInput
   student?: Prisma.UserOrderByWithRelationInput
+  currentStep?: Prisma.LessonStepOrderByWithRelationInput
   messages?: Prisma.MessageOrderByRelationAggregateInput
   stepProgress?: Prisma.StepProgressOrderByRelationAggregateInput
 }
@@ -222,6 +224,7 @@ export type AIInstanceWhereUniqueInput = Prisma.AtLeast<{
   currentStepId?: Prisma.StringNullableFilter<"AIInstance"> | string | null
   course?: Prisma.XOR<Prisma.CourseScalarRelationFilter, Prisma.CourseWhereInput>
   student?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  currentStep?: Prisma.XOR<Prisma.LessonStepNullableScalarRelationFilter, Prisma.LessonStepWhereInput> | null
   messages?: Prisma.MessageListRelationFilter
   stepProgress?: Prisma.StepProgressListRelationFilter
 }, "id" | "courseId_studentId">
@@ -254,9 +257,9 @@ export type AIInstanceCreateInput = {
   id?: string
   createdAt?: Date | string
   comprehensionState?: string
-  currentStepId?: string | null
   course: Prisma.CourseCreateNestedOneWithoutInstancesInput
   student: Prisma.UserCreateNestedOneWithoutInstancesInput
+  currentStep?: Prisma.LessonStepCreateNestedOneWithoutCurrentInstancesInput
   messages?: Prisma.MessageCreateNestedManyWithoutInstanceInput
   stepProgress?: Prisma.StepProgressCreateNestedManyWithoutInstanceInput
 }
@@ -276,9 +279,9 @@ export type AIInstanceUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
-  currentStepId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course?: Prisma.CourseUpdateOneRequiredWithoutInstancesNestedInput
   student?: Prisma.UserUpdateOneRequiredWithoutInstancesNestedInput
+  currentStep?: Prisma.LessonStepUpdateOneWithoutCurrentInstancesNestedInput
   messages?: Prisma.MessageUpdateManyWithoutInstanceNestedInput
   stepProgress?: Prisma.StepProgressUpdateManyWithoutInstanceNestedInput
 }
@@ -307,7 +310,6 @@ export type AIInstanceUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
-  currentStepId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AIInstanceUncheckedUpdateManyInput = {
@@ -450,6 +452,48 @@ export type AIInstanceUncheckedUpdateManyWithoutCourseNestedInput = {
   deleteMany?: Prisma.AIInstanceScalarWhereInput | Prisma.AIInstanceScalarWhereInput[]
 }
 
+export type AIInstanceCreateNestedManyWithoutCurrentStepInput = {
+  create?: Prisma.XOR<Prisma.AIInstanceCreateWithoutCurrentStepInput, Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput> | Prisma.AIInstanceCreateWithoutCurrentStepInput[] | Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput[]
+  connectOrCreate?: Prisma.AIInstanceCreateOrConnectWithoutCurrentStepInput | Prisma.AIInstanceCreateOrConnectWithoutCurrentStepInput[]
+  createMany?: Prisma.AIInstanceCreateManyCurrentStepInputEnvelope
+  connect?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+}
+
+export type AIInstanceUncheckedCreateNestedManyWithoutCurrentStepInput = {
+  create?: Prisma.XOR<Prisma.AIInstanceCreateWithoutCurrentStepInput, Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput> | Prisma.AIInstanceCreateWithoutCurrentStepInput[] | Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput[]
+  connectOrCreate?: Prisma.AIInstanceCreateOrConnectWithoutCurrentStepInput | Prisma.AIInstanceCreateOrConnectWithoutCurrentStepInput[]
+  createMany?: Prisma.AIInstanceCreateManyCurrentStepInputEnvelope
+  connect?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+}
+
+export type AIInstanceUpdateManyWithoutCurrentStepNestedInput = {
+  create?: Prisma.XOR<Prisma.AIInstanceCreateWithoutCurrentStepInput, Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput> | Prisma.AIInstanceCreateWithoutCurrentStepInput[] | Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput[]
+  connectOrCreate?: Prisma.AIInstanceCreateOrConnectWithoutCurrentStepInput | Prisma.AIInstanceCreateOrConnectWithoutCurrentStepInput[]
+  upsert?: Prisma.AIInstanceUpsertWithWhereUniqueWithoutCurrentStepInput | Prisma.AIInstanceUpsertWithWhereUniqueWithoutCurrentStepInput[]
+  createMany?: Prisma.AIInstanceCreateManyCurrentStepInputEnvelope
+  set?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+  disconnect?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+  delete?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+  connect?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+  update?: Prisma.AIInstanceUpdateWithWhereUniqueWithoutCurrentStepInput | Prisma.AIInstanceUpdateWithWhereUniqueWithoutCurrentStepInput[]
+  updateMany?: Prisma.AIInstanceUpdateManyWithWhereWithoutCurrentStepInput | Prisma.AIInstanceUpdateManyWithWhereWithoutCurrentStepInput[]
+  deleteMany?: Prisma.AIInstanceScalarWhereInput | Prisma.AIInstanceScalarWhereInput[]
+}
+
+export type AIInstanceUncheckedUpdateManyWithoutCurrentStepNestedInput = {
+  create?: Prisma.XOR<Prisma.AIInstanceCreateWithoutCurrentStepInput, Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput> | Prisma.AIInstanceCreateWithoutCurrentStepInput[] | Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput[]
+  connectOrCreate?: Prisma.AIInstanceCreateOrConnectWithoutCurrentStepInput | Prisma.AIInstanceCreateOrConnectWithoutCurrentStepInput[]
+  upsert?: Prisma.AIInstanceUpsertWithWhereUniqueWithoutCurrentStepInput | Prisma.AIInstanceUpsertWithWhereUniqueWithoutCurrentStepInput[]
+  createMany?: Prisma.AIInstanceCreateManyCurrentStepInputEnvelope
+  set?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+  disconnect?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+  delete?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+  connect?: Prisma.AIInstanceWhereUniqueInput | Prisma.AIInstanceWhereUniqueInput[]
+  update?: Prisma.AIInstanceUpdateWithWhereUniqueWithoutCurrentStepInput | Prisma.AIInstanceUpdateWithWhereUniqueWithoutCurrentStepInput[]
+  updateMany?: Prisma.AIInstanceUpdateManyWithWhereWithoutCurrentStepInput | Prisma.AIInstanceUpdateManyWithWhereWithoutCurrentStepInput[]
+  deleteMany?: Prisma.AIInstanceScalarWhereInput | Prisma.AIInstanceScalarWhereInput[]
+}
+
 export type AIInstanceCreateNestedOneWithoutStepProgressInput = {
   create?: Prisma.XOR<Prisma.AIInstanceCreateWithoutStepProgressInput, Prisma.AIInstanceUncheckedCreateWithoutStepProgressInput>
   connectOrCreate?: Prisma.AIInstanceCreateOrConnectWithoutStepProgressInput
@@ -482,8 +526,8 @@ export type AIInstanceCreateWithoutStudentInput = {
   id?: string
   createdAt?: Date | string
   comprehensionState?: string
-  currentStepId?: string | null
   course: Prisma.CourseCreateNestedOneWithoutInstancesInput
+  currentStep?: Prisma.LessonStepCreateNestedOneWithoutCurrentInstancesInput
   messages?: Prisma.MessageCreateNestedManyWithoutInstanceInput
   stepProgress?: Prisma.StepProgressCreateNestedManyWithoutInstanceInput
 }
@@ -540,8 +584,8 @@ export type AIInstanceCreateWithoutCourseInput = {
   id?: string
   createdAt?: Date | string
   comprehensionState?: string
-  currentStepId?: string | null
   student: Prisma.UserCreateNestedOneWithoutInstancesInput
+  currentStep?: Prisma.LessonStepCreateNestedOneWithoutCurrentInstancesInput
   messages?: Prisma.MessageCreateNestedManyWithoutInstanceInput
   stepProgress?: Prisma.StepProgressCreateNestedManyWithoutInstanceInput
 }
@@ -582,13 +626,59 @@ export type AIInstanceUpdateManyWithWhereWithoutCourseInput = {
   data: Prisma.XOR<Prisma.AIInstanceUpdateManyMutationInput, Prisma.AIInstanceUncheckedUpdateManyWithoutCourseInput>
 }
 
+export type AIInstanceCreateWithoutCurrentStepInput = {
+  id?: string
+  createdAt?: Date | string
+  comprehensionState?: string
+  course: Prisma.CourseCreateNestedOneWithoutInstancesInput
+  student: Prisma.UserCreateNestedOneWithoutInstancesInput
+  messages?: Prisma.MessageCreateNestedManyWithoutInstanceInput
+  stepProgress?: Prisma.StepProgressCreateNestedManyWithoutInstanceInput
+}
+
+export type AIInstanceUncheckedCreateWithoutCurrentStepInput = {
+  id?: string
+  courseId: string
+  studentId: string
+  createdAt?: Date | string
+  comprehensionState?: string
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutInstanceInput
+  stepProgress?: Prisma.StepProgressUncheckedCreateNestedManyWithoutInstanceInput
+}
+
+export type AIInstanceCreateOrConnectWithoutCurrentStepInput = {
+  where: Prisma.AIInstanceWhereUniqueInput
+  create: Prisma.XOR<Prisma.AIInstanceCreateWithoutCurrentStepInput, Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput>
+}
+
+export type AIInstanceCreateManyCurrentStepInputEnvelope = {
+  data: Prisma.AIInstanceCreateManyCurrentStepInput | Prisma.AIInstanceCreateManyCurrentStepInput[]
+  skipDuplicates?: boolean
+}
+
+export type AIInstanceUpsertWithWhereUniqueWithoutCurrentStepInput = {
+  where: Prisma.AIInstanceWhereUniqueInput
+  update: Prisma.XOR<Prisma.AIInstanceUpdateWithoutCurrentStepInput, Prisma.AIInstanceUncheckedUpdateWithoutCurrentStepInput>
+  create: Prisma.XOR<Prisma.AIInstanceCreateWithoutCurrentStepInput, Prisma.AIInstanceUncheckedCreateWithoutCurrentStepInput>
+}
+
+export type AIInstanceUpdateWithWhereUniqueWithoutCurrentStepInput = {
+  where: Prisma.AIInstanceWhereUniqueInput
+  data: Prisma.XOR<Prisma.AIInstanceUpdateWithoutCurrentStepInput, Prisma.AIInstanceUncheckedUpdateWithoutCurrentStepInput>
+}
+
+export type AIInstanceUpdateManyWithWhereWithoutCurrentStepInput = {
+  where: Prisma.AIInstanceScalarWhereInput
+  data: Prisma.XOR<Prisma.AIInstanceUpdateManyMutationInput, Prisma.AIInstanceUncheckedUpdateManyWithoutCurrentStepInput>
+}
+
 export type AIInstanceCreateWithoutStepProgressInput = {
   id?: string
   createdAt?: Date | string
   comprehensionState?: string
-  currentStepId?: string | null
   course: Prisma.CourseCreateNestedOneWithoutInstancesInput
   student: Prisma.UserCreateNestedOneWithoutInstancesInput
+  currentStep?: Prisma.LessonStepCreateNestedOneWithoutCurrentInstancesInput
   messages?: Prisma.MessageCreateNestedManyWithoutInstanceInput
 }
 
@@ -622,9 +712,9 @@ export type AIInstanceUpdateWithoutStepProgressInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
-  currentStepId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course?: Prisma.CourseUpdateOneRequiredWithoutInstancesNestedInput
   student?: Prisma.UserUpdateOneRequiredWithoutInstancesNestedInput
+  currentStep?: Prisma.LessonStepUpdateOneWithoutCurrentInstancesNestedInput
   messages?: Prisma.MessageUpdateManyWithoutInstanceNestedInput
 }
 
@@ -642,9 +732,9 @@ export type AIInstanceCreateWithoutMessagesInput = {
   id?: string
   createdAt?: Date | string
   comprehensionState?: string
-  currentStepId?: string | null
   course: Prisma.CourseCreateNestedOneWithoutInstancesInput
   student: Prisma.UserCreateNestedOneWithoutInstancesInput
+  currentStep?: Prisma.LessonStepCreateNestedOneWithoutCurrentInstancesInput
   stepProgress?: Prisma.StepProgressCreateNestedManyWithoutInstanceInput
 }
 
@@ -678,9 +768,9 @@ export type AIInstanceUpdateWithoutMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
-  currentStepId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course?: Prisma.CourseUpdateOneRequiredWithoutInstancesNestedInput
   student?: Prisma.UserUpdateOneRequiredWithoutInstancesNestedInput
+  currentStep?: Prisma.LessonStepUpdateOneWithoutCurrentInstancesNestedInput
   stepProgress?: Prisma.StepProgressUpdateManyWithoutInstanceNestedInput
 }
 
@@ -706,8 +796,8 @@ export type AIInstanceUpdateWithoutStudentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
-  currentStepId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   course?: Prisma.CourseUpdateOneRequiredWithoutInstancesNestedInput
+  currentStep?: Prisma.LessonStepUpdateOneWithoutCurrentInstancesNestedInput
   messages?: Prisma.MessageUpdateManyWithoutInstanceNestedInput
   stepProgress?: Prisma.StepProgressUpdateManyWithoutInstanceNestedInput
 }
@@ -742,8 +832,8 @@ export type AIInstanceUpdateWithoutCourseInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
-  currentStepId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   student?: Prisma.UserUpdateOneRequiredWithoutInstancesNestedInput
+  currentStep?: Prisma.LessonStepUpdateOneWithoutCurrentInstancesNestedInput
   messages?: Prisma.MessageUpdateManyWithoutInstanceNestedInput
   stepProgress?: Prisma.StepProgressUpdateManyWithoutInstanceNestedInput
 }
@@ -764,6 +854,42 @@ export type AIInstanceUncheckedUpdateManyWithoutCourseInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
   currentStepId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type AIInstanceCreateManyCurrentStepInput = {
+  id?: string
+  courseId: string
+  studentId: string
+  createdAt?: Date | string
+  comprehensionState?: string
+}
+
+export type AIInstanceUpdateWithoutCurrentStepInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
+  course?: Prisma.CourseUpdateOneRequiredWithoutInstancesNestedInput
+  student?: Prisma.UserUpdateOneRequiredWithoutInstancesNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutInstanceNestedInput
+  stepProgress?: Prisma.StepProgressUpdateManyWithoutInstanceNestedInput
+}
+
+export type AIInstanceUncheckedUpdateWithoutCurrentStepInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
+  studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutInstanceNestedInput
+  stepProgress?: Prisma.StepProgressUncheckedUpdateManyWithoutInstanceNestedInput
+}
+
+export type AIInstanceUncheckedUpdateManyWithoutCurrentStepInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
+  studentId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  comprehensionState?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 
@@ -815,6 +941,7 @@ export type AIInstanceSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   currentStepId?: boolean
   course?: boolean | Prisma.CourseDefaultArgs<ExtArgs>
   student?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  currentStep?: boolean | Prisma.AIInstance$currentStepArgs<ExtArgs>
   messages?: boolean | Prisma.AIInstance$messagesArgs<ExtArgs>
   stepProgress?: boolean | Prisma.AIInstance$stepProgressArgs<ExtArgs>
   _count?: boolean | Prisma.AIInstanceCountOutputTypeDefaultArgs<ExtArgs>
@@ -829,6 +956,7 @@ export type AIInstanceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   currentStepId?: boolean
   course?: boolean | Prisma.CourseDefaultArgs<ExtArgs>
   student?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  currentStep?: boolean | Prisma.AIInstance$currentStepArgs<ExtArgs>
 }, ExtArgs["result"]["aIInstance"]>
 
 export type AIInstanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -840,6 +968,7 @@ export type AIInstanceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   currentStepId?: boolean
   course?: boolean | Prisma.CourseDefaultArgs<ExtArgs>
   student?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  currentStep?: boolean | Prisma.AIInstance$currentStepArgs<ExtArgs>
 }, ExtArgs["result"]["aIInstance"]>
 
 export type AIInstanceSelectScalar = {
@@ -855,6 +984,7 @@ export type AIInstanceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type AIInstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course?: boolean | Prisma.CourseDefaultArgs<ExtArgs>
   student?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  currentStep?: boolean | Prisma.AIInstance$currentStepArgs<ExtArgs>
   messages?: boolean | Prisma.AIInstance$messagesArgs<ExtArgs>
   stepProgress?: boolean | Prisma.AIInstance$stepProgressArgs<ExtArgs>
   _count?: boolean | Prisma.AIInstanceCountOutputTypeDefaultArgs<ExtArgs>
@@ -862,10 +992,12 @@ export type AIInstanceInclude<ExtArgs extends runtime.Types.Extensions.InternalA
 export type AIInstanceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course?: boolean | Prisma.CourseDefaultArgs<ExtArgs>
   student?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  currentStep?: boolean | Prisma.AIInstance$currentStepArgs<ExtArgs>
 }
 export type AIInstanceIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course?: boolean | Prisma.CourseDefaultArgs<ExtArgs>
   student?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  currentStep?: boolean | Prisma.AIInstance$currentStepArgs<ExtArgs>
 }
 
 export type $AIInstancePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -873,6 +1005,7 @@ export type $AIInstancePayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     course: Prisma.$CoursePayload<ExtArgs>
     student: Prisma.$UserPayload<ExtArgs>
+    currentStep: Prisma.$LessonStepPayload<ExtArgs> | null
     messages: Prisma.$MessagePayload<ExtArgs>[]
     stepProgress: Prisma.$StepProgressPayload<ExtArgs>[]
   }
@@ -1279,6 +1412,7 @@ export interface Prisma__AIInstanceClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   course<T extends Prisma.CourseDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CourseDefaultArgs<ExtArgs>>): Prisma.Prisma__CourseClient<runtime.Types.Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   student<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  currentStep<T extends Prisma.AIInstance$currentStepArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AIInstance$currentStepArgs<ExtArgs>>): Prisma.Prisma__LessonStepClient<runtime.Types.Result.GetResult<Prisma.$LessonStepPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   messages<T extends Prisma.AIInstance$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AIInstance$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   stepProgress<T extends Prisma.AIInstance$stepProgressArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AIInstance$stepProgressArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StepProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1714,6 +1848,25 @@ export type AIInstanceDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many AIInstances to delete.
    */
   limit?: number
+}
+
+/**
+ * AIInstance.currentStep
+ */
+export type AIInstance$currentStepArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LessonStep
+   */
+  select?: Prisma.LessonStepSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the LessonStep
+   */
+  omit?: Prisma.LessonStepOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.LessonStepInclude<ExtArgs> | null
+  where?: Prisma.LessonStepWhereInput
 }
 
 /**

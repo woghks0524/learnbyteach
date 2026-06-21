@@ -42,7 +42,6 @@ export type LessonStepMinAggregateOutputType = {
   order: number | null
   title: string | null
   description: string | null
-  activityType: string | null
   aiName: string | null
   aiAvatar: string | null
   aiPersonality: string | null
@@ -58,7 +57,6 @@ export type LessonStepMaxAggregateOutputType = {
   order: number | null
   title: string | null
   description: string | null
-  activityType: string | null
   aiName: string | null
   aiAvatar: string | null
   aiPersonality: string | null
@@ -74,7 +72,6 @@ export type LessonStepCountAggregateOutputType = {
   order: number
   title: number
   description: number
-  activityType: number
   aiName: number
   aiAvatar: number
   aiPersonality: number
@@ -102,7 +99,6 @@ export type LessonStepMinAggregateInputType = {
   order?: true
   title?: true
   description?: true
-  activityType?: true
   aiName?: true
   aiAvatar?: true
   aiPersonality?: true
@@ -118,7 +114,6 @@ export type LessonStepMaxAggregateInputType = {
   order?: true
   title?: true
   description?: true
-  activityType?: true
   aiName?: true
   aiAvatar?: true
   aiPersonality?: true
@@ -134,7 +129,6 @@ export type LessonStepCountAggregateInputType = {
   order?: true
   title?: true
   description?: true
-  activityType?: true
   aiName?: true
   aiAvatar?: true
   aiPersonality?: true
@@ -237,7 +231,6 @@ export type LessonStepGroupByOutputType = {
   order: number
   title: string
   description: string | null
-  activityType: string
   aiName: string
   aiAvatar: string
   aiPersonality: string
@@ -276,7 +269,6 @@ export type LessonStepWhereInput = {
   order?: Prisma.IntFilter<"LessonStep"> | number
   title?: Prisma.StringFilter<"LessonStep"> | string
   description?: Prisma.StringNullableFilter<"LessonStep"> | string | null
-  activityType?: Prisma.StringFilter<"LessonStep"> | string
   aiName?: Prisma.StringFilter<"LessonStep"> | string
   aiAvatar?: Prisma.StringFilter<"LessonStep"> | string
   aiPersonality?: Prisma.StringFilter<"LessonStep"> | string
@@ -286,6 +278,7 @@ export type LessonStepWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"LessonStep"> | Date | string
   course?: Prisma.XOR<Prisma.CourseScalarRelationFilter, Prisma.CourseWhereInput>
   progress?: Prisma.StepProgressListRelationFilter
+  currentInstances?: Prisma.AIInstanceListRelationFilter
 }
 
 export type LessonStepOrderByWithRelationInput = {
@@ -294,7 +287,6 @@ export type LessonStepOrderByWithRelationInput = {
   order?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
-  activityType?: Prisma.SortOrder
   aiName?: Prisma.SortOrder
   aiAvatar?: Prisma.SortOrder
   aiPersonality?: Prisma.SortOrder
@@ -304,6 +296,7 @@ export type LessonStepOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   course?: Prisma.CourseOrderByWithRelationInput
   progress?: Prisma.StepProgressOrderByRelationAggregateInput
+  currentInstances?: Prisma.AIInstanceOrderByRelationAggregateInput
 }
 
 export type LessonStepWhereUniqueInput = Prisma.AtLeast<{
@@ -315,7 +308,6 @@ export type LessonStepWhereUniqueInput = Prisma.AtLeast<{
   order?: Prisma.IntFilter<"LessonStep"> | number
   title?: Prisma.StringFilter<"LessonStep"> | string
   description?: Prisma.StringNullableFilter<"LessonStep"> | string | null
-  activityType?: Prisma.StringFilter<"LessonStep"> | string
   aiName?: Prisma.StringFilter<"LessonStep"> | string
   aiAvatar?: Prisma.StringFilter<"LessonStep"> | string
   aiPersonality?: Prisma.StringFilter<"LessonStep"> | string
@@ -325,6 +317,7 @@ export type LessonStepWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"LessonStep"> | Date | string
   course?: Prisma.XOR<Prisma.CourseScalarRelationFilter, Prisma.CourseWhereInput>
   progress?: Prisma.StepProgressListRelationFilter
+  currentInstances?: Prisma.AIInstanceListRelationFilter
 }, "id">
 
 export type LessonStepOrderByWithAggregationInput = {
@@ -333,7 +326,6 @@ export type LessonStepOrderByWithAggregationInput = {
   order?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
-  activityType?: Prisma.SortOrder
   aiName?: Prisma.SortOrder
   aiAvatar?: Prisma.SortOrder
   aiPersonality?: Prisma.SortOrder
@@ -357,7 +349,6 @@ export type LessonStepScalarWhereWithAggregatesInput = {
   order?: Prisma.IntWithAggregatesFilter<"LessonStep"> | number
   title?: Prisma.StringWithAggregatesFilter<"LessonStep"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"LessonStep"> | string | null
-  activityType?: Prisma.StringWithAggregatesFilter<"LessonStep"> | string
   aiName?: Prisma.StringWithAggregatesFilter<"LessonStep"> | string
   aiAvatar?: Prisma.StringWithAggregatesFilter<"LessonStep"> | string
   aiPersonality?: Prisma.StringWithAggregatesFilter<"LessonStep"> | string
@@ -372,7 +363,6 @@ export type LessonStepCreateInput = {
   order: number
   title: string
   description?: string | null
-  activityType?: string
   aiName?: string
   aiAvatar?: string
   aiPersonality?: string
@@ -382,6 +372,7 @@ export type LessonStepCreateInput = {
   createdAt?: Date | string
   course: Prisma.CourseCreateNestedOneWithoutStepsInput
   progress?: Prisma.StepProgressCreateNestedManyWithoutStepInput
+  currentInstances?: Prisma.AIInstanceCreateNestedManyWithoutCurrentStepInput
 }
 
 export type LessonStepUncheckedCreateInput = {
@@ -390,7 +381,6 @@ export type LessonStepUncheckedCreateInput = {
   order: number
   title: string
   description?: string | null
-  activityType?: string
   aiName?: string
   aiAvatar?: string
   aiPersonality?: string
@@ -399,6 +389,7 @@ export type LessonStepUncheckedCreateInput = {
   minMessages?: number
   createdAt?: Date | string
   progress?: Prisma.StepProgressUncheckedCreateNestedManyWithoutStepInput
+  currentInstances?: Prisma.AIInstanceUncheckedCreateNestedManyWithoutCurrentStepInput
 }
 
 export type LessonStepUpdateInput = {
@@ -406,7 +397,6 @@ export type LessonStepUpdateInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -416,6 +406,7 @@ export type LessonStepUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course?: Prisma.CourseUpdateOneRequiredWithoutStepsNestedInput
   progress?: Prisma.StepProgressUpdateManyWithoutStepNestedInput
+  currentInstances?: Prisma.AIInstanceUpdateManyWithoutCurrentStepNestedInput
 }
 
 export type LessonStepUncheckedUpdateInput = {
@@ -424,7 +415,6 @@ export type LessonStepUncheckedUpdateInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -433,6 +423,7 @@ export type LessonStepUncheckedUpdateInput = {
   minMessages?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progress?: Prisma.StepProgressUncheckedUpdateManyWithoutStepNestedInput
+  currentInstances?: Prisma.AIInstanceUncheckedUpdateManyWithoutCurrentStepNestedInput
 }
 
 export type LessonStepCreateManyInput = {
@@ -441,7 +432,6 @@ export type LessonStepCreateManyInput = {
   order: number
   title: string
   description?: string | null
-  activityType?: string
   aiName?: string
   aiAvatar?: string
   aiPersonality?: string
@@ -456,7 +446,6 @@ export type LessonStepUpdateManyMutationInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -472,7 +461,6 @@ export type LessonStepUncheckedUpdateManyInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -498,7 +486,6 @@ export type LessonStepCountOrderByAggregateInput = {
   order?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
-  activityType?: Prisma.SortOrder
   aiName?: Prisma.SortOrder
   aiAvatar?: Prisma.SortOrder
   aiPersonality?: Prisma.SortOrder
@@ -519,7 +506,6 @@ export type LessonStepMaxOrderByAggregateInput = {
   order?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
-  activityType?: Prisma.SortOrder
   aiName?: Prisma.SortOrder
   aiAvatar?: Prisma.SortOrder
   aiPersonality?: Prisma.SortOrder
@@ -535,7 +521,6 @@ export type LessonStepMinOrderByAggregateInput = {
   order?: Prisma.SortOrder
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
-  activityType?: Prisma.SortOrder
   aiName?: Prisma.SortOrder
   aiAvatar?: Prisma.SortOrder
   aiPersonality?: Prisma.SortOrder
@@ -553,6 +538,11 @@ export type LessonStepSumOrderByAggregateInput = {
 export type LessonStepScalarRelationFilter = {
   is?: Prisma.LessonStepWhereInput
   isNot?: Prisma.LessonStepWhereInput
+}
+
+export type LessonStepNullableScalarRelationFilter = {
+  is?: Prisma.LessonStepWhereInput | null
+  isNot?: Prisma.LessonStepWhereInput | null
 }
 
 export type LessonStepCreateNestedManyWithoutCourseInput = {
@@ -619,12 +609,27 @@ export type LessonStepUpdateOneRequiredWithoutProgressNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.LessonStepUpdateToOneWithWhereWithoutProgressInput, Prisma.LessonStepUpdateWithoutProgressInput>, Prisma.LessonStepUncheckedUpdateWithoutProgressInput>
 }
 
+export type LessonStepCreateNestedOneWithoutCurrentInstancesInput = {
+  create?: Prisma.XOR<Prisma.LessonStepCreateWithoutCurrentInstancesInput, Prisma.LessonStepUncheckedCreateWithoutCurrentInstancesInput>
+  connectOrCreate?: Prisma.LessonStepCreateOrConnectWithoutCurrentInstancesInput
+  connect?: Prisma.LessonStepWhereUniqueInput
+}
+
+export type LessonStepUpdateOneWithoutCurrentInstancesNestedInput = {
+  create?: Prisma.XOR<Prisma.LessonStepCreateWithoutCurrentInstancesInput, Prisma.LessonStepUncheckedCreateWithoutCurrentInstancesInput>
+  connectOrCreate?: Prisma.LessonStepCreateOrConnectWithoutCurrentInstancesInput
+  upsert?: Prisma.LessonStepUpsertWithoutCurrentInstancesInput
+  disconnect?: Prisma.LessonStepWhereInput | boolean
+  delete?: Prisma.LessonStepWhereInput | boolean
+  connect?: Prisma.LessonStepWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.LessonStepUpdateToOneWithWhereWithoutCurrentInstancesInput, Prisma.LessonStepUpdateWithoutCurrentInstancesInput>, Prisma.LessonStepUncheckedUpdateWithoutCurrentInstancesInput>
+}
+
 export type LessonStepCreateWithoutCourseInput = {
   id?: string
   order: number
   title: string
   description?: string | null
-  activityType?: string
   aiName?: string
   aiAvatar?: string
   aiPersonality?: string
@@ -633,6 +638,7 @@ export type LessonStepCreateWithoutCourseInput = {
   minMessages?: number
   createdAt?: Date | string
   progress?: Prisma.StepProgressCreateNestedManyWithoutStepInput
+  currentInstances?: Prisma.AIInstanceCreateNestedManyWithoutCurrentStepInput
 }
 
 export type LessonStepUncheckedCreateWithoutCourseInput = {
@@ -640,7 +646,6 @@ export type LessonStepUncheckedCreateWithoutCourseInput = {
   order: number
   title: string
   description?: string | null
-  activityType?: string
   aiName?: string
   aiAvatar?: string
   aiPersonality?: string
@@ -649,6 +654,7 @@ export type LessonStepUncheckedCreateWithoutCourseInput = {
   minMessages?: number
   createdAt?: Date | string
   progress?: Prisma.StepProgressUncheckedCreateNestedManyWithoutStepInput
+  currentInstances?: Prisma.AIInstanceUncheckedCreateNestedManyWithoutCurrentStepInput
 }
 
 export type LessonStepCreateOrConnectWithoutCourseInput = {
@@ -686,7 +692,6 @@ export type LessonStepScalarWhereInput = {
   order?: Prisma.IntFilter<"LessonStep"> | number
   title?: Prisma.StringFilter<"LessonStep"> | string
   description?: Prisma.StringNullableFilter<"LessonStep"> | string | null
-  activityType?: Prisma.StringFilter<"LessonStep"> | string
   aiName?: Prisma.StringFilter<"LessonStep"> | string
   aiAvatar?: Prisma.StringFilter<"LessonStep"> | string
   aiPersonality?: Prisma.StringFilter<"LessonStep"> | string
@@ -701,7 +706,6 @@ export type LessonStepCreateWithoutProgressInput = {
   order: number
   title: string
   description?: string | null
-  activityType?: string
   aiName?: string
   aiAvatar?: string
   aiPersonality?: string
@@ -710,6 +714,7 @@ export type LessonStepCreateWithoutProgressInput = {
   minMessages?: number
   createdAt?: Date | string
   course: Prisma.CourseCreateNestedOneWithoutStepsInput
+  currentInstances?: Prisma.AIInstanceCreateNestedManyWithoutCurrentStepInput
 }
 
 export type LessonStepUncheckedCreateWithoutProgressInput = {
@@ -718,7 +723,6 @@ export type LessonStepUncheckedCreateWithoutProgressInput = {
   order: number
   title: string
   description?: string | null
-  activityType?: string
   aiName?: string
   aiAvatar?: string
   aiPersonality?: string
@@ -726,6 +730,7 @@ export type LessonStepUncheckedCreateWithoutProgressInput = {
   completionCriteria?: string | null
   minMessages?: number
   createdAt?: Date | string
+  currentInstances?: Prisma.AIInstanceUncheckedCreateNestedManyWithoutCurrentStepInput
 }
 
 export type LessonStepCreateOrConnectWithoutProgressInput = {
@@ -749,7 +754,6 @@ export type LessonStepUpdateWithoutProgressInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -758,6 +762,7 @@ export type LessonStepUpdateWithoutProgressInput = {
   minMessages?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   course?: Prisma.CourseUpdateOneRequiredWithoutStepsNestedInput
+  currentInstances?: Prisma.AIInstanceUpdateManyWithoutCurrentStepNestedInput
 }
 
 export type LessonStepUncheckedUpdateWithoutProgressInput = {
@@ -766,7 +771,6 @@ export type LessonStepUncheckedUpdateWithoutProgressInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -774,6 +778,87 @@ export type LessonStepUncheckedUpdateWithoutProgressInput = {
   completionCriteria?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   minMessages?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  currentInstances?: Prisma.AIInstanceUncheckedUpdateManyWithoutCurrentStepNestedInput
+}
+
+export type LessonStepCreateWithoutCurrentInstancesInput = {
+  id?: string
+  order: number
+  title: string
+  description?: string | null
+  aiName?: string
+  aiAvatar?: string
+  aiPersonality?: string
+  aiFocus?: string | null
+  completionCriteria?: string | null
+  minMessages?: number
+  createdAt?: Date | string
+  course: Prisma.CourseCreateNestedOneWithoutStepsInput
+  progress?: Prisma.StepProgressCreateNestedManyWithoutStepInput
+}
+
+export type LessonStepUncheckedCreateWithoutCurrentInstancesInput = {
+  id?: string
+  courseId: string
+  order: number
+  title: string
+  description?: string | null
+  aiName?: string
+  aiAvatar?: string
+  aiPersonality?: string
+  aiFocus?: string | null
+  completionCriteria?: string | null
+  minMessages?: number
+  createdAt?: Date | string
+  progress?: Prisma.StepProgressUncheckedCreateNestedManyWithoutStepInput
+}
+
+export type LessonStepCreateOrConnectWithoutCurrentInstancesInput = {
+  where: Prisma.LessonStepWhereUniqueInput
+  create: Prisma.XOR<Prisma.LessonStepCreateWithoutCurrentInstancesInput, Prisma.LessonStepUncheckedCreateWithoutCurrentInstancesInput>
+}
+
+export type LessonStepUpsertWithoutCurrentInstancesInput = {
+  update: Prisma.XOR<Prisma.LessonStepUpdateWithoutCurrentInstancesInput, Prisma.LessonStepUncheckedUpdateWithoutCurrentInstancesInput>
+  create: Prisma.XOR<Prisma.LessonStepCreateWithoutCurrentInstancesInput, Prisma.LessonStepUncheckedCreateWithoutCurrentInstancesInput>
+  where?: Prisma.LessonStepWhereInput
+}
+
+export type LessonStepUpdateToOneWithWhereWithoutCurrentInstancesInput = {
+  where?: Prisma.LessonStepWhereInput
+  data: Prisma.XOR<Prisma.LessonStepUpdateWithoutCurrentInstancesInput, Prisma.LessonStepUncheckedUpdateWithoutCurrentInstancesInput>
+}
+
+export type LessonStepUpdateWithoutCurrentInstancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
+  aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
+  aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
+  aiFocus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completionCriteria?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  minMessages?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  course?: Prisma.CourseUpdateOneRequiredWithoutStepsNestedInput
+  progress?: Prisma.StepProgressUpdateManyWithoutStepNestedInput
+}
+
+export type LessonStepUncheckedUpdateWithoutCurrentInstancesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  courseId?: Prisma.StringFieldUpdateOperationsInput | string
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
+  aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
+  aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
+  aiFocus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  completionCriteria?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  minMessages?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  progress?: Prisma.StepProgressUncheckedUpdateManyWithoutStepNestedInput
 }
 
 export type LessonStepCreateManyCourseInput = {
@@ -781,7 +866,6 @@ export type LessonStepCreateManyCourseInput = {
   order: number
   title: string
   description?: string | null
-  activityType?: string
   aiName?: string
   aiAvatar?: string
   aiPersonality?: string
@@ -796,7 +880,6 @@ export type LessonStepUpdateWithoutCourseInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -805,6 +888,7 @@ export type LessonStepUpdateWithoutCourseInput = {
   minMessages?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progress?: Prisma.StepProgressUpdateManyWithoutStepNestedInput
+  currentInstances?: Prisma.AIInstanceUpdateManyWithoutCurrentStepNestedInput
 }
 
 export type LessonStepUncheckedUpdateWithoutCourseInput = {
@@ -812,7 +896,6 @@ export type LessonStepUncheckedUpdateWithoutCourseInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -821,6 +904,7 @@ export type LessonStepUncheckedUpdateWithoutCourseInput = {
   minMessages?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   progress?: Prisma.StepProgressUncheckedUpdateManyWithoutStepNestedInput
+  currentInstances?: Prisma.AIInstanceUncheckedUpdateManyWithoutCurrentStepNestedInput
 }
 
 export type LessonStepUncheckedUpdateManyWithoutCourseInput = {
@@ -828,7 +912,6 @@ export type LessonStepUncheckedUpdateManyWithoutCourseInput = {
   order?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  activityType?: Prisma.StringFieldUpdateOperationsInput | string
   aiName?: Prisma.StringFieldUpdateOperationsInput | string
   aiAvatar?: Prisma.StringFieldUpdateOperationsInput | string
   aiPersonality?: Prisma.StringFieldUpdateOperationsInput | string
@@ -845,10 +928,12 @@ export type LessonStepUncheckedUpdateManyWithoutCourseInput = {
 
 export type LessonStepCountOutputType = {
   progress: number
+  currentInstances: number
 }
 
 export type LessonStepCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   progress?: boolean | LessonStepCountOutputTypeCountProgressArgs
+  currentInstances?: boolean | LessonStepCountOutputTypeCountCurrentInstancesArgs
 }
 
 /**
@@ -868,6 +953,13 @@ export type LessonStepCountOutputTypeCountProgressArgs<ExtArgs extends runtime.T
   where?: Prisma.StepProgressWhereInput
 }
 
+/**
+ * LessonStepCountOutputType without action
+ */
+export type LessonStepCountOutputTypeCountCurrentInstancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AIInstanceWhereInput
+}
+
 
 export type LessonStepSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -875,7 +967,6 @@ export type LessonStepSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   order?: boolean
   title?: boolean
   description?: boolean
-  activityType?: boolean
   aiName?: boolean
   aiAvatar?: boolean
   aiPersonality?: boolean
@@ -885,6 +976,7 @@ export type LessonStepSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   createdAt?: boolean
   course?: boolean | Prisma.CourseDefaultArgs<ExtArgs>
   progress?: boolean | Prisma.LessonStep$progressArgs<ExtArgs>
+  currentInstances?: boolean | Prisma.LessonStep$currentInstancesArgs<ExtArgs>
   _count?: boolean | Prisma.LessonStepCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["lessonStep"]>
 
@@ -894,7 +986,6 @@ export type LessonStepSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   order?: boolean
   title?: boolean
   description?: boolean
-  activityType?: boolean
   aiName?: boolean
   aiAvatar?: boolean
   aiPersonality?: boolean
@@ -911,7 +1002,6 @@ export type LessonStepSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   order?: boolean
   title?: boolean
   description?: boolean
-  activityType?: boolean
   aiName?: boolean
   aiAvatar?: boolean
   aiPersonality?: boolean
@@ -928,7 +1018,6 @@ export type LessonStepSelectScalar = {
   order?: boolean
   title?: boolean
   description?: boolean
-  activityType?: boolean
   aiName?: boolean
   aiAvatar?: boolean
   aiPersonality?: boolean
@@ -938,11 +1027,11 @@ export type LessonStepSelectScalar = {
   createdAt?: boolean
 }
 
-export type LessonStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "courseId" | "order" | "title" | "description" | "activityType" | "aiName" | "aiAvatar" | "aiPersonality" | "aiFocus" | "minMessages" | "createdAt", ExtArgs["result"]["lessonStep"]>
-export type LessonStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "courseId" | "order" | "title" | "description" | "activityType" | "aiName" | "aiAvatar" | "aiPersonality" | "completionCriteria" | "minMessages" | "createdAt", ExtArgs["result"]["lessonStep"]>
+export type LessonStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "courseId" | "order" | "title" | "description" | "aiName" | "aiAvatar" | "aiPersonality" | "aiFocus" | "completionCriteria" | "minMessages" | "createdAt", ExtArgs["result"]["lessonStep"]>
 export type LessonStepInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   course?: boolean | Prisma.CourseDefaultArgs<ExtArgs>
   progress?: boolean | Prisma.LessonStep$progressArgs<ExtArgs>
+  currentInstances?: boolean | Prisma.LessonStep$currentInstancesArgs<ExtArgs>
   _count?: boolean | Prisma.LessonStepCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type LessonStepIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -957,6 +1046,7 @@ export type $LessonStepPayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     course: Prisma.$CoursePayload<ExtArgs>
     progress: Prisma.$StepProgressPayload<ExtArgs>[]
+    currentInstances: Prisma.$AIInstancePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -964,7 +1054,6 @@ export type $LessonStepPayload<ExtArgs extends runtime.Types.Extensions.Internal
     order: number
     title: string
     description: string | null
-    activityType: string
     aiName: string
     aiAvatar: string
     aiPersonality: string
@@ -1368,6 +1457,7 @@ export interface Prisma__LessonStepClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   course<T extends Prisma.CourseDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.CourseDefaultArgs<ExtArgs>>): Prisma.Prisma__CourseClient<runtime.Types.Result.GetResult<Prisma.$CoursePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   progress<T extends Prisma.LessonStep$progressArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LessonStep$progressArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StepProgressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  currentInstances<T extends Prisma.LessonStep$currentInstancesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LessonStep$currentInstancesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AIInstancePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1402,7 +1492,6 @@ export interface LessonStepFieldRefs {
   readonly order: Prisma.FieldRef<"LessonStep", 'Int'>
   readonly title: Prisma.FieldRef<"LessonStep", 'String'>
   readonly description: Prisma.FieldRef<"LessonStep", 'String'>
-  readonly activityType: Prisma.FieldRef<"LessonStep", 'String'>
   readonly aiName: Prisma.FieldRef<"LessonStep", 'String'>
   readonly aiAvatar: Prisma.FieldRef<"LessonStep", 'String'>
   readonly aiPersonality: Prisma.FieldRef<"LessonStep", 'String'>
@@ -1832,6 +1921,30 @@ export type LessonStep$progressArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.StepProgressScalarFieldEnum | Prisma.StepProgressScalarFieldEnum[]
+}
+
+/**
+ * LessonStep.currentInstances
+ */
+export type LessonStep$currentInstancesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AIInstance
+   */
+  select?: Prisma.AIInstanceSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AIInstance
+   */
+  omit?: Prisma.AIInstanceOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AIInstanceInclude<ExtArgs> | null
+  where?: Prisma.AIInstanceWhereInput
+  orderBy?: Prisma.AIInstanceOrderByWithRelationInput | Prisma.AIInstanceOrderByWithRelationInput[]
+  cursor?: Prisma.AIInstanceWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AIInstanceScalarFieldEnum | Prisma.AIInstanceScalarFieldEnum[]
 }
 
 /**
