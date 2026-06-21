@@ -303,7 +303,7 @@ export default function CourseDetailPage() {
                   onClick={() => { setEditingStep({ ...step }); setIsNewStep(false); }}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{avatar?.emoji ?? "🧑‍🎓"}</span>
+                    <img src={`/avatars/${avatar?.key ?? "default"}.png`} alt="" className="w-10 h-10 rounded-full object-cover bg-gray-50 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono">단계 {step.order}</span>
@@ -361,7 +361,7 @@ export default function CourseDetailPage() {
                       onClick={() => setEditingStep({ ...editingStep, aiAvatar: a.key })}
                       className={`flex flex-col items-center p-2 rounded-lg border-2 transition ${editingStep.aiAvatar === a.key ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
                     >
-                      <span className="text-2xl">{a.emoji}</span>
+                      <img src={`/avatars/${a.key}.png`} alt="" className="w-10 h-10 rounded-full object-cover bg-gray-50" />
                       <span className="text-xs mt-0.5">{a.label}</span>
                     </button>
                   ))}
@@ -455,8 +455,8 @@ export default function CourseDetailPage() {
 
       {/* 대화 열람 탭 */}
       {activeTab === "conversations" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+          <div className="space-y-2 md:max-h-[75vh] md:overflow-y-auto md:sticky md:top-4 pr-1">
             {course.instances.length === 0 ? (
               <div className="bg-white rounded-xl p-4 text-center text-sm text-gray-500">아직 참여한 학생이 없습니다</div>
             ) : (

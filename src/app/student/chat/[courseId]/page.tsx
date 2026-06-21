@@ -24,14 +24,6 @@ interface LessonStep {
   aiAvatar: string;
 }
 
-const AVATAR_EMOJI: Record<string, string> = {
-  default: "🧑‍🎓",
-  curious: "🤓",
-  shy: "😶",
-  challenger: "😤",
-  sleepy: "😴",
-};
-
 export default function ChatPage() {
   const { courseId } = useParams();
   const router = useRouter();
@@ -165,7 +157,7 @@ export default function ChatPage() {
           {currentStep && steps.length > 0 && (
             <div className="text-right">
               <div className="flex items-center gap-1.5 justify-end">
-                <span className="text-xl">{AVATAR_EMOJI[currentStep.aiAvatar] ?? "🧑‍🎓"}</span>
+                <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-8 h-8 rounded-full object-cover bg-gray-50" />
                 <span className="text-sm font-medium text-gray-700">{currentStep.aiName}</span>
               </div>
               <p className="text-xs text-blue-600 mt-0.5">
@@ -187,8 +179,13 @@ export default function ChatPage() {
                   <span className="h-px w-8 bg-blue-200" />
                 </div>
                 <div className="max-w-sm px-4 py-2.5 rounded-2xl bg-blue-50 border border-blue-200 text-gray-800">
-                  <p className="text-xs text-blue-500 mb-1">
-                    {currentStep ? `${AVATAR_EMOJI[currentStep.aiAvatar] ?? "🧑‍🎓"} ${currentStep.aiName}` : "AI 학생"}
+                  <p className="text-xs text-blue-500 mb-1 inline-flex items-center gap-1">
+                    {currentStep ? (
+                      <>
+                        <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-4 h-4 rounded-full object-cover" />
+                        {currentStep.aiName}
+                      </>
+                    ) : "AI 학생"}
                   </p>
                   <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 </div>
@@ -203,8 +200,13 @@ export default function ChatPage() {
                   : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
               }`}>
                 {msg.role === "ai" && (
-                  <p className="text-xs text-gray-400 mb-1">
-                    {currentStep ? `${AVATAR_EMOJI[currentStep.aiAvatar] ?? "🧑‍🎓"} ${currentStep.aiName}` : "AI 학생"}
+                  <p className="text-xs text-gray-400 mb-1 inline-flex items-center gap-1">
+                    {currentStep ? (
+                      <>
+                        <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-4 h-4 rounded-full object-cover" />
+                        {currentStep.aiName}
+                      </>
+                    ) : "AI 학생"}
                   </p>
                 )}
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
