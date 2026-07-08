@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 import { buildSystemPrompt } from "@/lib/ai-prompt";
+import { CHAT_MODEL, parseJsonArray } from "@/lib/constants";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -55,10 +57,36 @@ export async function POST(
   }
 
   if (!instance) {
-    instance = await prisma.aIInstance.create({
-      data: { courseId, studentId: session.user.id },
-      include: { messages: true },
-    });
+    // 동시 요청(개발 모드 이펙트 2회 실행, 더블클릭 등)이면 create가 유니크 제약(P2002)에 걸린다.
+    // 그 경우 진 쪽은 이미 만들어진 인스턴스를 다시 읽어와서 그대로 이어간다 — 500/중복 인사 방지.
+    try {
+      instance = await prisma.aIInstance.create({
+        data: { courseId, studentId: session.user.id },
+        include: { messages: { orderBy: { createdAt: "asc" } } },
+      });
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+        const existing = await prisma.aIInstance.findUnique({
+          where: { courseId_studentId: { courseId, studentId: session.user.id } },
+          include: { messages: { orderBy: { createdAt: "asc" } } },
+        });
+        const steps = await prisma.lessonStep.findMany({ where: { courseId }, orderBy: { order: "asc" } });
+        const currentStep = steps.find((s) => s.id === existing?.currentStepId) ?? steps[0] ?? null;
+        const stepProgress = existing && currentStep
+          ? await prisma.stepProgress.findUnique({
+              where: { instanceId_stepId: { instanceId: existing.id, stepId: currentStep.id } },
+            })
+          : null;
+        return NextResponse.json({
+          instanceId: existing!.id,
+          messages: existing!.messages,
+          steps,
+          currentStep,
+          stepProgress,
+        });
+      }
+      throw e;
+    }
   }
 
   const course = await prisma.course.findUnique({
@@ -83,9 +111,9 @@ export async function POST(
     gradeLevel: course.gradeLevel,
     comprehensionLevel: course.comprehensionLevel,
     personality: firstStep?.aiPersonality ?? course.personality,
-    knownTopics: JSON.parse(course.knownTopics),
-    unknownTopics: JSON.parse(course.unknownTopics),
-    misconceptions: JSON.parse(course.misconceptions),
+    knownTopics: parseJsonArray(course.knownTopics),
+    unknownTopics: parseJsonArray(course.unknownTopics),
+    misconceptions: parseJsonArray(course.misconceptions),
     knowledgeContent: knowledgeContent || undefined,
     comprehensionState: {},
     stepFocus: firstStep?.aiFocus ?? undefined,
@@ -94,7 +122,7 @@ export async function POST(
   });
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: CHAT_MODEL,
     max_tokens: 300,
     messages: [
       { role: "system", content: systemPrompt },

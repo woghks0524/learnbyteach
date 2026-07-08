@@ -47,3 +47,5 @@ next-env.d.ts
 *.db
 scripts/test-results*.json
 supabase/
+.sim_results/
+.sim_harness*.mjs
