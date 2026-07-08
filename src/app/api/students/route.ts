@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json([]);
   }
 
+  // 한 학교 안에서 교사들이 학생 계정을 공유하는 구조 — 전체 학생 검색이 의도된 동작
   const students = await prisma.user.findMany({
     where: {
       role: "student",

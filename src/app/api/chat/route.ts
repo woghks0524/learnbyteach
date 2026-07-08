@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import OpenAI from "openai";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { buildSystemPrompt, buildComprehensionUpdatePrompt, buildStepJudgePrompt } from "@/lib/ai-prompt";
+import { CHAT_MODEL, JUDGE_MODEL, parseJsonArray, parseJsonObject } from "@/lib/constants";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -59,11 +60,11 @@ export async function POST(req: NextRequest) {
     gradeLevel: course.gradeLevel,
     comprehensionLevel: course.comprehensionLevel,
     personality: currentStep?.aiPersonality ?? course.personality,
-    knownTopics: JSON.parse(course.knownTopics),
-    unknownTopics: JSON.parse(course.unknownTopics),
-    misconceptions: JSON.parse(course.misconceptions),
+    knownTopics: parseJsonArray(course.knownTopics),
+    unknownTopics: parseJsonArray(course.unknownTopics),
+    misconceptions: parseJsonArray(course.misconceptions),
     knowledgeContent: knowledgeContent || undefined,
-    comprehensionState: JSON.parse(instance.comprehensionState),
+    comprehensionState: parseJsonObject(instance.comprehensionState),
     stepFocus: currentStep?.aiFocus ?? undefined,
     aiName: currentStep?.aiName ?? "AI 학생",
     stepTitle: currentStep?.title ?? undefined,
@@ -79,37 +80,33 @@ export async function POST(req: NextRequest) {
   ];
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    max_tokens: 500,
+    model: CHAT_MODEL,
+    max_tokens: 220, // 학생 반응은 한두 문장 — 넘치면 AI가 '교사'로 변해 장광설을 늘어놓는 걸 물리적으로 차단
     messages: [
       { role: "system", content: systemPrompt },
       ...conversationMessages,
     ],
   });
 
-  const rawAiMessage = response.choices[0].message.content ?? "";
-  const STEP_COMPLETE_TOKEN = "[STEP_COMPLETE]";
-  const aiMessage = rawAiMessage.replace(STEP_COMPLETE_TOKEN, "").trim();
+  const aiMessage = (response.choices[0].message.content ?? "").trim();
 
   await prisma.message.create({
     data: { instanceId, role: "ai", content: aiMessage, stepProgressId: stepProgress?.id ?? null },
   });
 
   // 단계 완료 판정 = (1) minMessages 하한을 코드로 강제 + (2) 채팅과 분리된 strict 심판(gpt-4o)
+  // 심판에는 현재 단계의 대화만 전달 — 이전 단계 발언이 판정을 오염시키지 않고 입력 토큰도 줄어든다
   let stepCompleted = false;
   if (currentStep && stepProgress && currentStep.completionCriteria) {
-    const stepMsgCount = await prisma.message.count({
+    const stepMessages = await prisma.message.findMany({
       where: { stepProgressId: stepProgress.id },
+      orderBy: { createdAt: "asc" },
     });
-    if (stepMsgCount >= currentStep.minMessages) {
-      const judgeConversation = [
-        ...instance.messages.map((m) => ({ role: m.role, content: m.content })),
-        { role: "student", content: message },
-        { role: "ai", content: aiMessage },
-      ];
+    if (stepMessages.length >= currentStep.minMessages) {
+      const judgeConversation = stepMessages.map((m) => ({ role: m.role, content: m.content }));
       try {
         const judgeResp = await openai.chat.completions.create({
-          model: "gpt-4o",
+          model: JUDGE_MODEL,
           max_tokens: 500,
           response_format: { type: "json_object" },
           messages: [
@@ -161,11 +158,11 @@ export async function POST(req: NextRequest) {
         gradeLevel: course.gradeLevel,
         comprehensionLevel: course.comprehensionLevel,
         personality: nextStep.aiPersonality,
-        knownTopics: JSON.parse(course.knownTopics),
-        unknownTopics: JSON.parse(course.unknownTopics),
-        misconceptions: JSON.parse(course.misconceptions),
+        knownTopics: parseJsonArray(course.knownTopics),
+        unknownTopics: parseJsonArray(course.unknownTopics),
+        misconceptions: parseJsonArray(course.misconceptions),
         knowledgeContent: knowledgeContent || undefined,
-        comprehensionState: JSON.parse(instance.comprehensionState),
+        comprehensionState: parseJsonObject(instance.comprehensionState),
         stepFocus: nextStep.aiFocus ?? undefined,
         aiName: nextStep.aiName,
         stepTitle: nextStep.title,
@@ -173,7 +170,7 @@ export async function POST(req: NextRequest) {
       });
 
       const transitionResp = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: CHAT_MODEL,
         max_tokens: 200,
         messages: [
           { role: "system", content: transitionSystemPrompt },
@@ -185,7 +182,7 @@ export async function POST(req: NextRequest) {
         ],
       });
 
-      const transitionText = (transitionResp.choices[0].message.content ?? "").replace(STEP_COMPLETE_TOKEN, "").trim();
+      const transitionText = (transitionResp.choices[0].message.content ?? "").trim();
 
       await prisma.message.create({
         data: { instanceId, role: "ai", content: transitionText, stepProgressId: nextProgress.id },
@@ -199,48 +196,51 @@ export async function POST(req: NextRequest) {
   }
 
   // 이해도 상태 업데이트 (매 5번 대화마다 = 10개 메시지)
+  // 학생 응답을 막지 않도록 응답 전송 후(after)에 실행 — 다음 채팅부터 갱신된 상태가 반영된다
   const totalMessages = instance.messages.length + 2;
   if (totalMessages % 5 === 0) {
-    try {
-      const allMessages = [
-        ...instance.messages.map((m) => ({ role: m.role, content: m.content })),
-        { role: "student", content: message },
-        { role: "ai", content: aiMessage },
-      ];
+    after(async () => {
+      try {
+        const allMessages = [
+          ...instance.messages.map((m) => ({ role: m.role, content: m.content })),
+          { role: "student", content: message },
+          { role: "ai", content: aiMessage },
+        ];
 
-      const updatePrompt = buildComprehensionUpdatePrompt(
-        JSON.parse(instance.comprehensionState),
-        allMessages,
-        knowledgeContent || undefined
-      );
+        const updatePrompt = buildComprehensionUpdatePrompt(
+          parseJsonObject(instance.comprehensionState),
+          allMessages,
+          knowledgeContent || undefined
+        );
 
-      const stateResponse = await openai.chat.completions.create({
-        model: "gpt-4o",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: updatePrompt }],
-      });
-
-      const stateText = stateResponse.choices[0].message.content ?? "{}";
-      const jsonMatch = stateText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        // 값이 가끔 객체({status, detail})로 와서 "[object Object]"로 깨지는 것 방지 — 문자열로 평탄화
-        const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
-        const flat: Record<string, string> = {};
-        for (const [topic, val] of Object.entries(parsed)) {
-          if (typeof val === "string") flat[topic] = val;
-          else if (val && typeof val === "object") {
-            const o = val as Record<string, unknown>;
-            flat[topic] = String(o.status ?? o.state ?? o.level ?? Object.values(o)[0] ?? "");
-          } else if (val != null) flat[topic] = String(val);
-        }
-        await prisma.aIInstance.update({
-          where: { id: instanceId },
-          data: { comprehensionState: JSON.stringify(flat) },
+        const stateResponse = await openai.chat.completions.create({
+          model: JUDGE_MODEL,
+          max_tokens: 1000,
+          messages: [{ role: "user", content: updatePrompt }],
         });
+
+        const stateText = stateResponse.choices[0].message.content ?? "{}";
+        const jsonMatch = stateText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          // 값이 가끔 객체({status, detail})로 와서 "[object Object]"로 깨지는 것 방지 — 문자열로 평탄화
+          const parsed = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
+          const flat: Record<string, string> = {};
+          for (const [topic, val] of Object.entries(parsed)) {
+            if (typeof val === "string") flat[topic] = val;
+            else if (val && typeof val === "object") {
+              const o = val as Record<string, unknown>;
+              flat[topic] = String(o.status ?? o.state ?? o.level ?? Object.values(o)[0] ?? "");
+            } else if (val != null) flat[topic] = String(val);
+          }
+          await prisma.aIInstance.update({
+            where: { id: instanceId },
+            data: { comprehensionState: JSON.stringify(flat) },
+          });
+        }
+      } catch {
+        // 이해도 업데이트 실패해도 대화는 계속
       }
-    } catch {
-      // 이해도 업데이트 실패해도 대화는 계속
-    }
+    });
   }
 
   return NextResponse.json({
