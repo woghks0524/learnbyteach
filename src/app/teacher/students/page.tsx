@@ -15,26 +15,27 @@ export default function StudentManagementPage() {
   const [commonPw, setCommonPw] = useState("");
   const [importMsg, setImportMsg] = useState("");
 
-  // 붙여넣은 텍스트(이름/아이디[/비밀번호], 탭·쉼표 구분)를 파싱해 행으로 채운다
-  const importPaste = () => {
-    const rows = pasteText
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => line.split(/\t|,/).map((c) => c.trim()));
+  const [importing, setImporting] = useState(false);
+
+  // 행 배열(각 행 = [이름, 아이디, 비밀번호?])을 학생 목록으로 채운다. 붙여넣기·엑셀 업로드 공통.
+  const fillFromRows = (rows: string[][], source: "paste" | "file") => {
     // 머리글 행(이름/아이디/학번 등) 자동 건너뛰기
     const filtered = rows.filter(
-      (c, i) => !(i === 0 && c.some((v) => /이름|아이디|학번|비밀번호|이메일/.test(v)))
+      (c, i) => !(i === 0 && c.some((v) => /이름|아이디|학번|비밀번호|이메일|번호|성명/.test(v)))
     );
     const parsed = filtered
       .map((c) => ({
-        name: c[0] || "",
-        username: c[1] || "",
-        password: c[2] || commonPw || "",
+        name: (c[0] ?? "").trim(),
+        username: (c[1] ?? "").trim(),
+        password: (c[2] ?? "").trim() || commonPw || "",
       }))
       .filter((s) => s.name && s.username);
     if (parsed.length === 0) {
-      setImportMsg("붙여넣은 내용에서 이름·아이디를 찾지 못했어요. 한 줄에 한 명씩, 이름[탭]아이디[탭]비밀번호 형식으로 넣어주세요.");
+      setImportMsg(
+        source === "file"
+          ? "엑셀에서 이름·아이디를 찾지 못했어요. 첫 열=이름, 둘째 열=아이디, 셋째 열=비밀번호(선택) 순서인지 확인해 주세요."
+          : "붙여넣은 내용에서 이름·아이디를 찾지 못했어요. 한 줄에 한 명씩, 이름[탭]아이디[탭]비밀번호 형식으로 넣어주세요."
+      );
       return;
     }
     const missingPw = parsed.filter((s) => !s.password).length;
@@ -43,6 +44,38 @@ export default function StudentManagementPage() {
       `${parsed.length}명 불러왔어요.` +
         (missingPw > 0 ? ` (${missingPw}명은 비밀번호가 비어 있어요 — 공통 비밀번호를 넣거나 아래 표에서 직접 입력하세요.)` : "")
     );
+  };
+
+  // 붙여넣은 텍스트(탭·쉼표 구분)를 행으로 변환
+  const importPaste = () => {
+    const rows = pasteText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.split(/\t|,/).map((c) => c.trim()));
+    fillFromRows(rows, "paste");
+  };
+
+  // 엑셀/CSV 파일 업로드 → 첫 시트를 행 배열로 파싱 (xlsx는 파일 선택 시에만 동적 로드)
+  const importFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // 같은 파일 다시 선택 가능하게
+    if (!file) return;
+    setImporting(true);
+    setImportMsg("");
+    try {
+      const XLSX = await import("xlsx");
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false }) as unknown[][];
+      const asStr = rows.map((r) => r.map((c) => (c == null ? "" : String(c).trim())));
+      fillFromRows(asStr, "file");
+    } catch {
+      setImportMsg("엑셀 파일을 읽지 못했어요. .xlsx 또는 .csv 파일인지 확인해 주세요.");
+    } finally {
+      setImporting(false);
+    }
   };
 
   const addRow = () => setStudents((prev) => [...prev, { name: "", username: "", password: "" }]);
@@ -100,9 +133,22 @@ export default function StudentManagementPage() {
         </div>
       )}
 
+      {/* 엑셀 파일 업로드 */}
+      <div className="bg-white rounded-xl shadow p-6 mb-4">
+        <h2 className="font-semibold mb-1">📄 엑셀 파일 올리기</h2>
+        <p className="text-sm text-gray-500 mb-3">
+          <b>이름 / 아이디 / 비밀번호</b> 순서의 엑셀(.xlsx)이나 CSV 파일을 올리면 자동으로 명단을 불러와요. 비밀번호 열이 없으면 공통 비밀번호가 적용됩니다.
+        </p>
+        <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition cursor-pointer">
+          {importing ? "읽는 중..." : "엑셀 파일 선택 (.xlsx, .csv)"}
+          <input type="file" accept=".xlsx,.xls,.csv" onChange={importFile} className="hidden" disabled={importing} />
+        </label>
+        <span className="text-xs text-gray-400 ml-2">첫 시트의 이름·아이디·비밀번호 열을 읽어요</span>
+      </div>
+
       {/* 엑셀 붙여넣기 */}
       <div className="bg-white rounded-xl shadow p-6 mb-4">
-        <h2 className="font-semibold mb-1">📋 엑셀에서 붙여넣기</h2>
+        <h2 className="font-semibold mb-1">📋 또는 엑셀에서 붙여넣기</h2>
         <p className="text-sm text-gray-500 mb-3">
           엑셀·구글시트에서 <b>이름 / 아이디 / 비밀번호</b> 열을 복사해 아래에 붙여넣고 &apos;불러오기&apos;를 누르세요. 한 줄에 한 명, 탭이나 쉼표로 구분돼요. 비밀번호 열이 없으면 공통 비밀번호가 적용됩니다.
         </p>
