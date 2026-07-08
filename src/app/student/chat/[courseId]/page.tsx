@@ -116,10 +116,10 @@ export default function ChatPage() {
 
   if (initializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-sky-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-          <p className="text-gray-500">AI 학생을 준비하고 있어요...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-sky-500 mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600 font-medium">AI 친구를 깨우고 있어요... 🌟</p>
         </div>
       </div>
     );
@@ -142,93 +142,97 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-2xl mx-auto">
-      <div className="p-4 border-b bg-white">
+    <div className="flex flex-col h-screen max-w-2xl mx-auto bg-sky-50">
+      <div className="p-4 border-b border-sky-100 bg-white rounded-b-2xl shadow-sm">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.push("/student")} className="text-gray-500 hover:text-gray-700">
+          <button
+            onClick={() => router.push("/student")}
+            className="text-xl text-gray-400 hover:text-gray-600 px-1"
+            aria-label="내 수업으로 돌아가기"
+          >
             &larr;
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="font-semibold truncate">{courseInfo?.name || "AI 학생에게 가르치기"}</h1>
-            <p className="text-xs text-gray-500 truncate">
-              {courseInfo ? `${courseInfo.subject} · ${courseInfo.unit}` : "개념을 설명해주세요. AI 학생이 질문하고 배울 거예요!"}
+            <h1 className="text-lg font-bold truncate">{courseInfo?.name || "AI 친구에게 가르치기"}</h1>
+            <p className="text-sm text-gray-500 truncate">
+              {courseInfo ? `${courseInfo.subject} · ${courseInfo.unit}` : "배운 걸 설명해주면 AI 친구가 질문하며 배워요!"}
             </p>
           </div>
           {currentStep && steps.length > 0 && (
             <div className="text-right">
-              <div className="flex items-center gap-1.5 justify-end">
-                <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-8 h-8 rounded-full object-cover bg-gray-50" />
-                <span className="text-sm font-medium text-gray-700">{currentStep.aiName}</span>
+              <div className="flex items-center gap-2 justify-end">
+                <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-10 h-10 rounded-full object-cover bg-sky-50 ring-2 ring-sky-200" />
+                <span className="text-base font-bold text-gray-700">{currentStep.aiName}</span>
               </div>
-              <p className="text-xs text-blue-600 mt-0.5">
-                단계 {currentStep.order}/{steps.length} · {currentStep.title}
+              <p className="text-sm text-sky-600 font-medium mt-1">
+                {"⭐".repeat(currentStep.order)}{"☆".repeat(Math.max(0, steps.length - currentStep.order))} {currentStep.title}
               </p>
             </div>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, i) => {
           if (msg.kind === "transition") {
             return (
-              <div key={i} className="flex flex-col items-center gap-1 py-2">
-                <div className="flex items-center gap-2 text-xs text-blue-600">
-                  <span className="h-px w-8 bg-blue-200" />
-                  <span>다음 단계로 넘어왔어요</span>
-                  <span className="h-px w-8 bg-blue-200" />
+              <div key={i} className="flex flex-col items-center gap-1.5 py-2">
+                <div className="flex items-center gap-2 text-sm text-sky-600 font-medium">
+                  <span className="h-px w-8 bg-sky-200" />
+                  <span>🎈 새로운 이야기가 시작됐어요!</span>
+                  <span className="h-px w-8 bg-sky-200" />
                 </div>
-                <div className="max-w-sm px-4 py-2.5 rounded-2xl bg-blue-50 border border-blue-200 text-gray-800">
-                  <p className="text-xs text-blue-500 mb-1 inline-flex items-center gap-1">
+                <div className="max-w-[80%] px-5 py-3 rounded-3xl bg-sky-100 border border-sky-200 text-gray-800">
+                  <p className="text-sm text-sky-600 font-medium mb-1 inline-flex items-center gap-1.5">
                     {currentStep ? (
                       <>
-                        <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-4 h-4 rounded-full object-cover" />
+                        <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
                         {currentStep.aiName}
                       </>
-                    ) : "AI 학생"}
+                    ) : "AI 친구"}
                   </p>
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
             );
           }
           return (
             <div key={i} className={`flex ${msg.role === "student" ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-sm px-4 py-2.5 rounded-2xl ${
+              <div className={`max-w-[80%] px-5 py-3 rounded-3xl ${
                 msg.role === "student"
-                  ? "bg-blue-600 text-white rounded-br-md"
-                  : "bg-white border border-gray-200 text-gray-800 rounded-bl-md"
+                  ? "bg-sky-500 text-white rounded-br-lg"
+                  : "bg-white border border-sky-100 text-gray-800 rounded-bl-lg shadow-sm"
               }`}>
                 {msg.role === "ai" && (
-                  <p className="text-xs text-gray-400 mb-1 inline-flex items-center gap-1">
+                  <p className="text-sm text-gray-400 font-medium mb-1 inline-flex items-center gap-1.5">
                     {currentStep ? (
                       <>
-                        <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-4 h-4 rounded-full object-cover" />
+                        <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
                         {currentStep.aiName}
                       </>
-                    ) : "AI 학생"}
+                    ) : "AI 친구"}
                   </p>
                 )}
-                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.content}</p>
               </div>
             </div>
           );
         })}
         {allStepsCompleted && (
-          <div className="flex justify-center py-3">
-            <div className="px-4 py-2 bg-green-50 border border-green-200 rounded-full text-sm text-green-700">
-              🎉 모든 단계 완료! 수고하셨어요
+          <div className="flex justify-center py-4">
+            <div className="px-6 py-3 bg-green-50 border-2 border-green-200 rounded-full text-base font-bold text-green-700">
+              🎉 오늘 가르치기 대성공! 정말 멋진 선생님이에요 🏆
             </div>
           </div>
         )}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-2xl rounded-bl-md">
-              <p className="text-xs text-gray-400 mb-1">AI 학생</p>
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.1s]"></span>
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+            <div className="bg-white border border-sky-100 px-5 py-3 rounded-3xl rounded-bl-lg shadow-sm">
+              <p className="text-sm text-gray-400 font-medium mb-1">{currentStep?.aiName || "AI 친구"}</p>
+              <div className="flex gap-1.5">
+                <span className="w-2.5 h-2.5 bg-sky-300 rounded-full animate-bounce"></span>
+                <span className="w-2.5 h-2.5 bg-sky-300 rounded-full animate-bounce [animation-delay:0.1s]"></span>
+                <span className="w-2.5 h-2.5 bg-sky-300 rounded-full animate-bounce [animation-delay:0.2s]"></span>
               </div>
             </div>
           </div>
@@ -236,20 +240,20 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="p-4 border-t bg-white">
+      <form onSubmit={sendMessage} className="p-4 border-t border-sky-100 bg-white rounded-t-2xl">
         <div className="flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="AI 학생에게 설명해주세요..."
-            className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="AI 친구에게 설명해 주세요 ✏️"
+            className="flex-1 px-5 py-3 text-base border-2 border-sky-200 rounded-full focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 text-base font-bold bg-sky-500 text-white rounded-full hover:bg-sky-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             보내기
           </button>
