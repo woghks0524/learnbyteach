@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getCurriculumUnit } from "@/lib/curriculum";
 
 export async function GET() {
   const session = await auth();
@@ -37,6 +38,30 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
+
+  // 교육과정 단원을 골랐으면, 그 단원의 학습내용을 정답지(지식파일)로 자동 생성해 연결한다.
+  const knowledgeFileIds: string[] = [...(body.knowledgeFileIds || [])];
+  if (body.curriculumUnitId != null) {
+    const u = getCurriculumUnit(Number(body.curriculumUnitId));
+    if (u) {
+      const answerKey = [
+        `[${u.grade}학년 ${u.semester}학기 ${u.subject} · ${u.unit} (${u.publisher})]`,
+        u.standards ? `성취기준: ${u.standards}` : "",
+        `단원 학습내용:\n${u.content}`,
+      ].filter(Boolean).join("\n\n");
+      const kf = await prisma.knowledgeFile.create({
+        data: {
+          teacherId: session.user.id,
+          fileName: `${u.unit} (${u.publisher}) · 교육과정`,
+          content: answerKey,
+          fileType: "curriculum",
+          subject: u.subject,
+        },
+      });
+      knowledgeFileIds.push(kf.id);
+    }
+  }
+
   const course = await prisma.course.create({
     data: {
       teacherId: session.user.id,
@@ -51,7 +76,7 @@ export async function POST(req: NextRequest) {
       unknownTopics: JSON.stringify(body.unknownTopics || []),
       misconceptions: JSON.stringify(body.misconceptions || []),
       knowledgeFiles: {
-        create: (body.knowledgeFileIds || []).map((fileId: string) => ({
+        create: knowledgeFileIds.map((fileId: string) => ({
           knowledgeFileId: fileId,
         })),
       },

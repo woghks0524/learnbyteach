@@ -10,6 +10,18 @@ interface KnowledgeFile {
   subject: string;
 }
 
+interface CurriculumItem {
+  id: number;
+  grade: number;
+  semester: number;
+  subject: string;
+  publisher: string;
+  unit: string;
+  domain: string;
+}
+
+const uniq = (arr: (string | number)[]) => [...new Set(arr)];
+
 export default function NewCoursePage() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -29,9 +41,42 @@ export default function NewCoursePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // 교육과정 단원 선택 (학년→학기→과목→출판사→단원)
+  const [curriculum, setCurriculum] = useState<CurriculumItem[]>([]);
+  const [cur, setCur] = useState({ grade: "", semester: "", subject: "", publisher: "", unitId: "" });
+
   useEffect(() => {
     fetch("/api/knowledge").then((r) => r.json()).then(setKnowledgeFiles);
+    fetch("/api/curriculum").then((r) => r.json()).then((d) => Array.isArray(d) && setCurriculum(d));
   }, []);
+
+  // 단계별 후보 목록 (앞 선택에 따라 좁혀짐)
+  const g = cur.grade ? Number(cur.grade) : null;
+  const s = cur.semester ? Number(cur.semester) : null;
+  const curGrades = uniq(curriculum.map((c) => c.grade)).sort((a, b) => (a as number) - (b as number));
+  const curSemesters = uniq(curriculum.filter((c) => c.grade === g).map((c) => c.semester)).sort();
+  const curSubjects = uniq(curriculum.filter((c) => c.grade === g && c.semester === s).map((c) => c.subject));
+  const curPublishers = uniq(
+    curriculum.filter((c) => c.grade === g && c.semester === s && c.subject === cur.subject).map((c) => c.publisher)
+  );
+  const curUnits = curriculum.filter(
+    (c) => c.grade === g && c.semester === s && c.subject === cur.subject && c.publisher === cur.publisher
+  );
+
+  // 단원을 고르면 과목·단원·학년을 자동 입력
+  const selectUnit = (unitId: string) => {
+    setCur((p) => ({ ...p, unitId }));
+    const item = curriculum.find((c) => c.id === Number(unitId));
+    if (item) {
+      setForm((f) => ({
+        ...f,
+        subject: item.subject,
+        unit: item.unit,
+        gradeLevel: `${item.grade}학년`,
+        name: f.name || `${item.grade}학년 ${item.subject} - ${item.unit}`,
+      }));
+    }
+  };
 
   // 과목 입력하면 관련 파일 필터링
   const filteredFiles = form.subject
@@ -59,6 +104,7 @@ export default function NewCoursePage() {
           unknownTopics: form.unknownTopics.split(",").map((s) => s.trim()).filter(Boolean),
           misconceptions: form.misconceptions.split("\n").map((s) => s.trim()).filter(Boolean),
           knowledgeFileIds: selectedFileIds,
+          curriculumUnitId: cur.unitId ? Number(cur.unitId) : null,
         }),
       });
 
@@ -158,10 +204,75 @@ export default function NewCoursePage() {
           </div>
         </div>
 
-        {/* 지식파일 선택 */}
+        {/* 교육과정에서 단원 불러오기 (기본 제공) */}
+        <div className="space-y-3">
+          <div className="border-b pb-2">
+            <h2 className="font-semibold text-gray-800">📚 교육과정에서 단원 불러오기</h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              학년·학기·과목·출판사·단원을 고르면 <b>과목·단원·학년과 정답지(AI가 참고할 단원 학습내용)가 자동으로 채워져요.</b> 따로 파일을 올릴 필요 없어요.
+            </p>
+          </div>
+          {curriculum.length === 0 ? (
+            <p className="text-sm text-gray-400">교육과정 데이터를 불러오는 중...</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <select
+                value={cur.grade}
+                onChange={(e) => setCur({ grade: e.target.value, semester: "", subject: "", publisher: "", unitId: "" })}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">학년</option>
+                {curGrades.map((v) => <option key={v} value={v}>{v}학년</option>)}
+              </select>
+              <select
+                value={cur.semester}
+                disabled={!cur.grade}
+                onChange={(e) => setCur((p) => ({ ...p, semester: e.target.value, subject: "", publisher: "", unitId: "" }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+              >
+                <option value="">학기</option>
+                {curSemesters.map((v) => <option key={v} value={v}>{v}학기</option>)}
+              </select>
+              <select
+                value={cur.subject}
+                disabled={!cur.semester}
+                onChange={(e) => setCur((p) => ({ ...p, subject: e.target.value, publisher: "", unitId: "" }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+              >
+                <option value="">과목</option>
+                {curSubjects.map((v) => <option key={v} value={v}>{v}</option>)}
+              </select>
+              <select
+                value={cur.publisher}
+                disabled={!cur.subject}
+                onChange={(e) => setCur((p) => ({ ...p, publisher: e.target.value, unitId: "" }))}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+              >
+                <option value="">출판사</option>
+                {curPublishers.map((v) => <option key={v} value={v}>{v}</option>)}
+              </select>
+              <select
+                value={cur.unitId}
+                disabled={!cur.publisher}
+                onChange={(e) => selectUnit(e.target.value)}
+                className="col-span-2 sm:col-span-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+              >
+                <option value="">단원</option>
+                {curUnits.map((u) => <option key={u.id} value={u.id}>{u.unit}</option>)}
+              </select>
+            </div>
+          )}
+          {cur.unitId && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+              ✅ 이 단원의 학습내용이 정답지로 등록됩니다. 아래 &apos;수업 정보&apos;가 자동으로 채워졌어요.
+            </div>
+          )}
+        </div>
+
+        {/* 지식파일 선택 (직접 올린 자료를 추가로 쓰고 싶을 때) */}
         <div className="space-y-4">
           <div className="flex justify-between items-center border-b pb-2">
-            <h2 className="font-semibold text-gray-800">지식파일 선택</h2>
+            <h2 className="font-semibold text-gray-800">지식파일 직접 선택 <span className="font-normal text-gray-400 text-sm">(선택)</span></h2>
             <button
               type="button"
               onClick={() => window.open("/teacher/knowledge", "_blank")}
@@ -248,14 +359,17 @@ export default function NewCoursePage() {
         <div className="space-y-4">
           <h2 className="font-semibold text-gray-800 border-b pb-2">지식 범위</h2>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">이미 아는 개념 (쉼표로 구분)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">선수학습 — 이전 학년에 이미 배운 개념 (쉼표로 구분)</label>
             <input
               type="text"
               value={form.knownTopics}
               onChange={(e) => update("knownTopics", e.target.value)}
-              placeholder="예: 원자, 분자, 원소"
+              placeholder="예: 동물의 한살이, 식물의 구조 (3학년까지 배운 것)"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              AI 학생이 &quot;이미 아는 것&quot;의 경계예요. 여기 적은 것만 알고, 이번 단원 내용은 모르는 상태로 시작해요. 학년 수준에 맞는 질문을 하게 하려면 채워주세요.
+            </p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">아직 모르는 개념 (쉼표로 구분)</label>
