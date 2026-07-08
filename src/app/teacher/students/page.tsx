@@ -10,6 +10,41 @@ export default function StudentManagementPage() {
   const [results, setResults] = useState<{ email: string; success: boolean; error?: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // 엑셀 붙여넣기
+  const [pasteText, setPasteText] = useState("");
+  const [commonPw, setCommonPw] = useState("");
+  const [importMsg, setImportMsg] = useState("");
+
+  // 붙여넣은 텍스트(이름/아이디[/비밀번호], 탭·쉼표 구분)를 파싱해 행으로 채운다
+  const importPaste = () => {
+    const rows = pasteText
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.split(/\t|,/).map((c) => c.trim()));
+    // 머리글 행(이름/아이디/학번 등) 자동 건너뛰기
+    const filtered = rows.filter(
+      (c, i) => !(i === 0 && c.some((v) => /이름|아이디|학번|비밀번호|이메일/.test(v)))
+    );
+    const parsed = filtered
+      .map((c) => ({
+        name: c[0] || "",
+        username: c[1] || "",
+        password: c[2] || commonPw || "",
+      }))
+      .filter((s) => s.name && s.username);
+    if (parsed.length === 0) {
+      setImportMsg("붙여넣은 내용에서 이름·아이디를 찾지 못했어요. 한 줄에 한 명씩, 이름[탭]아이디[탭]비밀번호 형식으로 넣어주세요.");
+      return;
+    }
+    const missingPw = parsed.filter((s) => !s.password).length;
+    setStudents(parsed);
+    setImportMsg(
+      `${parsed.length}명 불러왔어요.` +
+        (missingPw > 0 ? ` (${missingPw}명은 비밀번호가 비어 있어요 — 공통 비밀번호를 넣거나 아래 표에서 직접 입력하세요.)` : "")
+    );
+  };
+
   const addRow = () => setStudents((prev) => [...prev, { name: "", username: "", password: "" }]);
 
   const updateRow = (index: number, field: string, value: string) => {
@@ -65,8 +100,40 @@ export default function StudentManagementPage() {
         </div>
       )}
 
+      {/* 엑셀 붙여넣기 */}
+      <div className="bg-white rounded-xl shadow p-6 mb-4">
+        <h2 className="font-semibold mb-1">📋 엑셀에서 붙여넣기</h2>
+        <p className="text-sm text-gray-500 mb-3">
+          엑셀·구글시트에서 <b>이름 / 아이디 / 비밀번호</b> 열을 복사해 아래에 붙여넣고 &apos;불러오기&apos;를 누르세요. 한 줄에 한 명, 탭이나 쉼표로 구분돼요. 비밀번호 열이 없으면 공통 비밀번호가 적용됩니다.
+        </p>
+        <textarea
+          value={pasteText}
+          onChange={(e) => setPasteText(e.target.value)}
+          rows={5}
+          placeholder={"김민준\t10101\t1234\n이서연\t10102\t1234\n박도윤\t10103"}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <div className="flex flex-wrap items-center gap-2 mt-3">
+          <input
+            type="text"
+            value={commonPw}
+            onChange={(e) => setCommonPw(e.target.value)}
+            placeholder="공통 비밀번호 (선택)"
+            className="w-48 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="button"
+            onClick={importPaste}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition"
+          >
+            불러오기
+          </button>
+          {importMsg && <span className="text-sm text-gray-600">{importMsg}</span>}
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6">
-        <h2 className="font-semibold mb-4">학생 계정 일괄 생성</h2>
+        <h2 className="font-semibold mb-4">학생 계정 일괄 생성 <span className="font-normal text-gray-400 text-sm">(붙여넣기로 채워지거나, 직접 입력)</span></h2>
 
         <div className="space-y-3">
           {students.map((s, i) => (
