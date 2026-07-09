@@ -59,7 +59,7 @@ export default function TeacherDashboard() {
   if (status !== "authenticated") return null;
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold">교사 대시보드</h1>
