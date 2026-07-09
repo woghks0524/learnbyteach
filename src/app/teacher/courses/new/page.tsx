@@ -20,6 +20,8 @@ interface CurriculumItem {
   domain: string;
 }
 
+interface Group { id: string; name: string; students: { id: string; name: string }[] }
+
 const uniq = (arr: (string | number)[]) => [...new Set(arr)];
 
 export default function NewCoursePage() {
@@ -40,15 +42,27 @@ export default function NewCoursePage() {
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // 교육과정 단원 선택 (학년→학기→과목→출판사→단원)
   const [curriculum, setCurriculum] = useState<CurriculumItem[]>([]);
   const [cur, setCur] = useState({ grade: "", semester: "", subject: "", publisher: "", unitId: "" });
 
+  // 학생 그룹(반) — 선택하면 그 학생들이 수업에 등록됨
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     fetch("/api/knowledge").then((r) => r.json()).then(setKnowledgeFiles);
     fetch("/api/curriculum").then((r) => r.json()).then((d) => Array.isArray(d) && setCurriculum(d));
+    fetch("/api/groups").then((r) => r.json()).then((d) => Array.isArray(d) && setGroups(d));
   }, []);
+
+  const toggleGroup = (id: string) =>
+    setSelectedGroupIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const enrolledStudentIds = [
+    ...new Set(groups.filter((g) => selectedGroupIds.has(g.id)).flatMap((g) => g.students.map((s) => s.id))),
+  ];
 
   // 단계별 후보 목록 (앞 선택에 따라 좁혀짐)
   const g = cur.grade ? Number(cur.grade) : null;
@@ -148,6 +162,7 @@ export default function NewCoursePage() {
           knowledgeFileIds: selectedFileIds,
           curriculumUnitId: cur.unitId ? Number(cur.unitId) : null,
           steps: genSteps.filter((st) => st.title.trim()),
+          enrollStudentIds: enrolledStudentIds,
         }),
       });
 
@@ -173,12 +188,16 @@ export default function NewCoursePage() {
     custom: "기타",
   };
 
+  const stepDone1 = !!cur.unitId;
+  const stepDone2 = genSteps.length > 0;
+
   return (
     <div className="max-w-2xl mx-auto p-6">
       <button onClick={() => router.push("/teacher")} className="text-sm text-gray-500 hover:text-gray-700 mb-4">
         &larr; 대시보드로
       </button>
-      <h1 className="text-2xl font-bold mb-6">수업 개설</h1>
+      <h1 className="text-2xl font-bold mb-1">수업 개설</h1>
+      <p className="text-sm text-gray-500 mb-5">단원만 고르면 AI가 대부분 채워줘요. 3단계면 끝나요.</p>
 
       {error && (
         <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
@@ -186,74 +205,17 @@ export default function NewCoursePage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow p-6 space-y-5">
-        <div className="space-y-4">
-          <h2 className="font-semibold text-gray-800 border-b pb-2">수업 정보</h2>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">수업 이름</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              placeholder="예: 중2 과학 3반 - 물질의 구성"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* STEP 1 — 단원 선택 */}
+        <section className="bg-white rounded-xl shadow p-6 space-y-3">
+          <div className="flex items-start gap-3">
+            <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${stepDone1 ? "bg-green-500 text-white" : "bg-blue-600 text-white"}`}>{stepDone1 ? "✓" : "1"}</span>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">과목</label>
-              <input
-                type="text"
-                value={form.subject}
-                onChange={(e) => update("subject", e.target.value)}
-                placeholder="과학"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
+              <h2 className="font-semibold text-gray-800">어떤 단원을 가르치나요?</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                학년·학기·과목·출판사·단원을 순서대로 고르세요. 고르면 <b>과목·단원·학년과 정답지가 자동으로 채워져요.</b>
+              </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">단원/차시</label>
-              <input
-                type="text"
-                value={form.unit}
-                onChange={(e) => update("unit", e.target.value)}
-                placeholder="1단원 물질의 구성"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">학년</label>
-              <input
-                type="text"
-                value={form.gradeLevel}
-                onChange={(e) => update("gradeLevel", e.target.value)}
-                placeholder="중학교 2학년"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">설명 (선택)</label>
-            <input
-              type="text"
-              value={form.description}
-              onChange={(e) => update("description", e.target.value)}
-              placeholder="수업에 대한 간단한 설명"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* 교육과정에서 단원 불러오기 (기본 제공) */}
-        <div className="space-y-3">
-          <div className="border-b pb-2">
-            <h2 className="font-semibold text-gray-800">📚 교육과정에서 단원 불러오기</h2>
-            <p className="text-sm text-gray-500 mt-0.5">
-              학년·학기·과목·출판사·단원을 고르면 <b>과목·단원·학년과 정답지(AI가 참고할 단원 학습내용)가 자동으로 채워져요.</b> 따로 파일을 올릴 필요 없어요.
-            </p>
           </div>
           {curriculum.length === 0 ? (
             <p className="text-sm text-gray-400">교육과정 데이터를 불러오는 중...</p>
@@ -307,36 +269,36 @@ export default function NewCoursePage() {
           )}
           {cur.unitId && (
             <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
-              ✅ 이 단원의 학습내용이 정답지로 등록됩니다. 아래 &apos;수업 정보&apos;가 자동으로 채워졌어요.
+              ✅ 이 단원의 학습내용이 정답지로 등록돼요.
             </div>
           )}
+        </section>
 
-          {/* AI 자동 구성 */}
-          {cur.unitId && (
-            <div className="rounded-lg border-2 border-dashed border-indigo-200 bg-indigo-50/50 p-4">
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={autoConfigure}
-                  disabled={generating}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-60"
-                >
-                  {generating ? "AI가 구성하는 중..." : "🪄 AI로 수업 자동 구성"}
-                </button>
-                <span className="text-sm text-gray-600">
-                  이 단원의 <b>흔한 오개념·선수학습·학습 단계(완료 기준)</b>를 AI가 초안으로 채워줘요.
-                  {selectedFileIds.length > 0
-                    ? " 선택한 지식파일도 함께 반영해요."
-                    : " (아래에서 지식파일을 먼저 선택하면 그 자료도 함께 반영해요.)"}
-                </span>
-              </div>
-              {genMsg && <p className="text-sm text-indigo-700 mt-2">{genMsg}</p>}
+        {/* STEP 2 — AI 자동 구성 */}
+        <section className={`bg-white rounded-xl shadow p-6 space-y-3 ${!stepDone1 ? "opacity-50 pointer-events-none" : ""}`}>
+          <div className="flex items-start gap-3">
+            <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${stepDone2 ? "bg-green-500 text-white" : "bg-blue-600 text-white"}`}>{stepDone2 ? "✓" : "2"}</span>
+            <div>
+              <h2 className="font-semibold text-gray-800">AI로 수업 자동 구성</h2>
+              <p className="text-sm text-gray-500 mt-0.5">
+                버튼을 누르면 이 단원의 <b>흔한 오개념·선수학습·학습 단계(완료 기준)</b>를 AI가 초안으로 채워줘요.
+                {selectedFileIds.length > 0 ? " 선택한 지식파일도 함께 반영해요." : ""}
+              </p>
             </div>
-          )}
+          </div>
+          <button
+            type="button"
+            onClick={autoConfigure}
+            disabled={generating || !cur.unitId}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-60"
+          >
+            {generating ? "AI가 구성하는 중... (약 10초)" : genSteps.length > 0 ? "🪄 다시 구성하기" : "🪄 AI로 수업 자동 구성"}
+          </button>
+          {genMsg && <p className="text-sm text-indigo-700">{genMsg}</p>}
 
           {/* 생성된 학습 단계 미리보기·편집 */}
           {genSteps.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-2 pt-1">
               <h3 className="text-sm font-semibold text-gray-800">학습 단계 <span className="font-normal text-gray-400">(AI 초안 — 수정 가능, 저장 시 함께 생성돼요)</span></h3>
               {genSteps.map((st, i) => (
                 <div key={i} className="rounded-lg border border-gray-200 p-3 space-y-2">
@@ -367,12 +329,98 @@ export default function NewCoursePage() {
               ))}
             </div>
           )}
-        </div>
+        </section>
 
-        {/* 지식파일 선택 (직접 올린 자료를 추가로 쓰고 싶을 때) */}
+        {/* STEP 3 — 수업 정보 확인 */}
+        <section className="bg-white rounded-xl shadow p-6 space-y-4">
+          <div className="flex items-start gap-3">
+            <span className="shrink-0 w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">3</span>
+            <div>
+              <h2 className="font-semibold text-gray-800">수업 정보 확인</h2>
+              <p className="text-sm text-gray-500 mt-0.5">단원을 고르면 자동으로 채워져요. 필요하면 고치세요.</p>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">수업 이름</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => update("name", e.target.value)}
+              placeholder="예: 4학년 과학 3반 - 다양한 생물"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">과목</label>
+              <input type="text" value={form.subject} onChange={(e) => update("subject", e.target.value)} placeholder="과학" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">단원</label>
+              <input type="text" value={form.unit} onChange={(e) => update("unit", e.target.value)} placeholder="다양한 생물과 우리 생활" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">학년</label>
+              <input type="text" value={form.gradeLevel} onChange={(e) => update("gradeLevel", e.target.value)} placeholder="4학년" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">설명 <span className="text-gray-400 font-normal">(선택)</span></label>
+            <input type="text" value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="수업에 대한 간단한 설명" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+
+          {/* 학생 등록 — 그룹 선택 */}
+          <div className="pt-2 border-t">
+            <label className="block text-sm font-medium text-gray-700 mb-1">학생 등록 <span className="text-gray-400 font-normal">(선택)</span></label>
+            {groups.length === 0 ? (
+              <p className="text-sm text-gray-400">
+                아직 만든 그룹이 없어요.{" "}
+                <button type="button" onClick={() => window.open("/teacher/students", "_blank")} className="text-blue-600 hover:underline">학생 관리에서 그룹 만들기 →</button>
+              </p>
+            ) : (
+              <>
+                <p className="text-sm text-gray-500 mb-2">등록할 반(그룹)을 고르세요. 그 반 학생들이 이 수업에 자동으로 등록돼요.</p>
+                <div className="flex flex-wrap gap-2">
+                  {groups.map((g) => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => toggleGroup(g.id)}
+                      className={`px-3 py-1.5 rounded-full text-sm border transition ${selectedGroupIds.has(g.id) ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300 hover:border-blue-400"}`}
+                    >
+                      {g.name} · {g.students.length}명
+                    </button>
+                  ))}
+                </div>
+                {enrolledStudentIds.length > 0 && (
+                  <p className="text-sm text-blue-600 mt-2">✅ {enrolledStudentIds.length}명이 이 수업에 등록돼요.</p>
+                )}
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* 세부 설정 (선택) — 접기 */}
+        <section className="bg-white rounded-xl shadow">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="w-full flex items-center justify-between p-5 text-left"
+          >
+            <div>
+              <h2 className="font-semibold text-gray-800">세부 설정 <span className="font-normal text-gray-400 text-sm">(선택 — AI가 채운 걸 더 다듬고 싶을 때)</span></h2>
+              <p className="text-sm text-gray-500 mt-0.5">AI 학생 이해력·성격, 오개념·선수학습, 직접 올린 지식파일</p>
+            </div>
+            <span className="text-gray-400 text-xl">{showAdvanced ? "▾" : "▸"}</span>
+          </button>
+
+          {showAdvanced && (
+          <div className="px-6 pb-6 space-y-6">
+        {/* 지식파일 직접 선택 */}
         <div className="space-y-4">
           <div className="flex justify-between items-center border-b pb-2">
-            <h2 className="font-semibold text-gray-800">지식파일 직접 선택 <span className="font-normal text-gray-400 text-sm">(선택)</span></h2>
+            <h3 className="font-semibold text-gray-800">지식파일 직접 선택 <span className="font-normal text-gray-400 text-sm">(선택)</span></h3>
             <button
               type="button"
               onClick={() => window.open("/teacher/knowledge", "_blank")}
@@ -382,7 +430,7 @@ export default function NewCoursePage() {
             </button>
           </div>
           <p className="text-sm text-gray-500">
-            AI 학생이 참고할 교육과정/교과서 파일을 선택하세요. 선택된 파일에 있는 내용만 AI가 인식합니다.
+            교육과정 단원 외에 참고할 내 자료가 있으면 선택하세요. 자동 구성 시 이 내용도 함께 반영돼요.
           </p>
           {knowledgeFiles.length === 0 ? (
             <div className="bg-gray-50 rounded-lg p-4 text-center text-sm text-gray-500">
@@ -427,7 +475,7 @@ export default function NewCoursePage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="font-semibold text-gray-800 border-b pb-2">AI 학생 설정</h2>
+          <h3 className="font-semibold text-gray-800 border-b pb-2">AI 학생 설정</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">이해력 수준</label>
@@ -457,7 +505,7 @@ export default function NewCoursePage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className="font-semibold text-gray-800 border-b pb-2">지식 범위</h2>
+          <h3 className="font-semibold text-gray-800 border-b pb-2">지식 범위</h3>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">선수학습 — 이전 학년에 이미 배운 개념 (쉼표로 구분)</label>
             <input
@@ -492,6 +540,9 @@ export default function NewCoursePage() {
             />
           </div>
         </div>
+          </div>
+          )}
+        </section>
 
         <div className="flex gap-3">
           <button type="button" onClick={() => router.back()} className="flex-1 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
