@@ -84,6 +84,19 @@ export default function CourseDetailPage() {
   const [selectedInstance, setSelectedInstance] = useState<Instance | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // 그룹으로 학생 추가
+  const [groups, setGroups] = useState<{ id: string; name: string; students: Student[] }[]>([]);
+  useEffect(() => { fetch("/api/groups").then((r) => r.json()).then((d) => Array.isArray(d) && setGroups(d)); }, []);
+  const enrollGroup = async (studentIds: string[]) => {
+    if (studentIds.length === 0) return;
+    await fetch(`/api/courses/${id}/enroll`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentIds }),
+    });
+    loadCourse();
+  };
+
   // 단계 설계
   const [steps, setSteps] = useState<LessonStep[]>([]);
   const [editingStep, setEditingStep] = useState<LessonStep | null>(null);
@@ -259,6 +272,32 @@ export default function CourseDetailPage() {
         <div className="space-y-4">
           <div className="bg-white rounded-xl p-4">
             <h3 className="font-semibold mb-3">학생 추가</h3>
+
+            {groups.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm text-gray-500 mb-2">그룹(반)으로 한 번에 추가:</p>
+                <div className="flex flex-wrap gap-2">
+                  {groups.map((g) => {
+                    const newOnes = g.students.filter((s) => !enrolledIds.has(s.id));
+                    const done = newOnes.length === 0 && g.students.length > 0;
+                    return (
+                      <button
+                        key={g.id}
+                        onClick={() => enrollGroup(newOnes.map((s) => s.id))}
+                        disabled={done || g.students.length === 0}
+                        className={`px-3 py-1.5 rounded-full text-sm border transition ${done ? "bg-green-50 text-green-600 border-green-200 cursor-default" : "bg-white text-gray-700 border-gray-300 hover:border-blue-400"}`}
+                        title={done ? "이미 다 등록됨" : `${newOnes.length}명 추가`}
+                      >
+                        {g.name} · {g.students.length}명{done ? " ✓" : newOnes.length < g.students.length ? ` (+${newOnes.length})` : ""}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="border-t mt-3 pt-3" />
+              </div>
+            )}
+
+            <p className="text-sm text-gray-500 mb-2">또는 개별 검색으로 추가:</p>
             <div className="relative">
               <input
                 type="text"

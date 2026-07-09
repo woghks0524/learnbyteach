@@ -13,6 +13,8 @@ export default function StudentManagementPage() {
   const [results, setResults] = useState<{ email: string; success: boolean; error?: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const [pageTab, setPageTab] = useState<"add" | "manage">("add");
+
   // 내 학생 목록 + 그룹
   const [myStudents, setMyStudents] = useState<StudentRow[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -203,12 +205,19 @@ export default function StudentManagementPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto p-6">
       <button onClick={() => router.push("/teacher")} className="text-sm text-gray-500 hover:text-gray-700 mb-4">
         &larr; 대시보드로
       </button>
-      <h1 className="text-2xl font-bold mb-6">학생 계정 관리</h1>
+      <h1 className="text-2xl font-bold mb-4">학생 계정 관리</h1>
 
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-6 max-w-md">
+        <button onClick={() => setPageTab("add")} className={`flex-1 py-2 rounded-md text-sm font-medium transition ${pageTab === "add" ? "bg-white shadow" : "text-gray-600"}`}>➕ 학생 추가</button>
+        <button onClick={() => setPageTab("manage")} className={`flex-1 py-2 rounded-md text-sm font-medium transition ${pageTab === "manage" ? "bg-white shadow" : "text-gray-600"}`}>👥 내 학생·그룹 ({myStudents.length})</button>
+      </div>
+
+      {pageTab === "add" && (
+      <div>
       {results.length > 0 && (
         <div className="mb-6 bg-white rounded-xl p-4 space-y-2">
           <h3 className="font-semibold">생성 결과</h3>
@@ -338,9 +347,13 @@ export default function StudentManagementPage() {
           </button>
         </div>
       </form>
+      </div>
+      )}
 
-      {/* 내 학생 + 그룹 */}
-      <div className="bg-white rounded-xl shadow p-6 mt-6">
+      {/* 내 학생 + 그룹 (관리 탭) — 넓게 2단 배치 */}
+      {pageTab === "manage" && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <div className="bg-white rounded-xl shadow p-6">
         <div className="flex items-center justify-between mb-1">
           <h2 className="font-semibold">👥 내 학생 <span className="font-normal text-gray-400 text-sm">({myStudents.length}명)</span></h2>
           {selected.size > 0 && <span className="text-sm text-blue-600">{selected.size}명 선택됨</span>}
@@ -384,9 +397,14 @@ export default function StudentManagementPage() {
           </>
         )}
 
-        {groups.length > 0 && (
-          <div className="mt-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">그룹 <span className="font-normal text-gray-400">({groups.length}개)</span></h3>
+      </div>
+
+      {/* 그룹 (오른쪽 칼럼) */}
+      <div className="bg-white rounded-xl shadow p-6">
+        <h2 className="font-semibold mb-3">📋 그룹(반) <span className="font-normal text-gray-400 text-sm">({groups.length}개)</span></h2>
+        {groups.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4 text-center">왼쪽에서 학생을 골라 그룹(반)을 만들어보세요.</p>
+        ) : (
             <div className="space-y-2">
               {groups.map((g) => (
                 <div key={g.id} className="px-3 py-2 bg-gray-50 rounded-lg">
@@ -422,9 +440,10 @@ export default function StudentManagementPage() {
                 </div>
               ))}
             </div>
-          </div>
         )}
       </div>
+      </div>
+      )}
     </div>
   );
 }
