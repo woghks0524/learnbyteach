@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
   const response = await openai.chat.completions.create({
     model: CHAT_MODEL,
-    max_tokens: 220, // 학생 반응은 한두 문장 — 넘치면 AI가 '교사'로 변해 장광설을 늘어놓는 걸 물리적으로 차단
+    max_tokens: 90, // 학생 반응은 짧게(주로 한 문장) — 선생님(가르치는 학생)보다 길게 말하지 않도록
     messages: [
       { role: "system", content: systemPrompt },
       ...conversationMessages,
