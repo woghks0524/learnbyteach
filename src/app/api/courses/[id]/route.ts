@@ -74,3 +74,34 @@ export async function GET(
 
   return NextResponse.json(withStuck);
 }
+
+// 수업 삭제 — 딸린 인스턴스(대화·진행상태 자동)·등록을 먼저 지우고 수업 삭제.
+// 단계·정답지 연결은 onDelete Cascade로 자동 삭제됨. 지식파일 원본은 라이브러리에 남김(다른 수업 공유 가능).
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "teacher") {
+    return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
+  }
+
+  const { id } = await params;
+
+  // 내 수업인지 확인
+  const course = await prisma.course.findUnique({
+    where: { id, teacherId: session.user.id },
+    select: { id: true },
+  });
+  if (!course) {
+    return NextResponse.json({ error: "수업을 찾을 수 없습니다" }, { status: 404 });
+  }
+
+  await prisma.$transaction([
+    prisma.aIInstance.deleteMany({ where: { courseId: id } }), // 메시지·진행상태는 Cascade
+    prisma.courseEnrollment.deleteMany({ where: { courseId: id } }),
+    prisma.course.delete({ where: { id } }), // 단계·정답지 연결은 Cascade
+  ]);
+
+  return NextResponse.json({ success: true });
+}
