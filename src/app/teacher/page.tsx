@@ -59,7 +59,7 @@ export default function TeacherDashboard() {
   if (status !== "authenticated") return null;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold">교사 대시보드</h1>
@@ -102,12 +102,12 @@ export default function TeacherDashboard() {
           아직 개설한 수업이 없습니다
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {courses.map((c) => (
             <Link
               key={c.id}
               href={`/teacher/courses/${c.id}`}
-              className="block bg-white rounded-xl p-4 hover:shadow-md transition"
+              className="block bg-white rounded-xl p-4 hover:shadow-md transition h-full"
             >
               <div className="flex justify-between items-start gap-3">
                 <div className="min-w-0">

@@ -192,7 +192,7 @@ export default function NewCoursePage() {
   const stepDone2 = genSteps.length > 0;
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-6">
       <button onClick={() => router.push("/teacher")} className="text-sm text-gray-500 hover:text-gray-700 mb-4">
         &larr; 대시보드로
       </button>
@@ -300,6 +300,7 @@ export default function NewCoursePage() {
           {genSteps.length > 0 && (
             <div className="space-y-2 pt-1">
               <h3 className="text-sm font-semibold text-gray-800">학습 단계 <span className="font-normal text-gray-400">(AI 초안 — 수정 가능, 저장 시 함께 생성돼요)</span></h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {genSteps.map((st, i) => (
                 <div key={i} className="rounded-lg border border-gray-200 p-3 space-y-2">
                   <div className="flex items-center gap-2">
@@ -327,6 +328,7 @@ export default function NewCoursePage() {
                   />
                 </div>
               ))}
+              </div>
             </div>
           )}
         </section>
