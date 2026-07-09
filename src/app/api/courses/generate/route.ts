@@ -1,29 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { getCurriculumUnit } from "@/lib/curriculum";
 import { buildCourseSetupPrompt } from "@/lib/ai-prompt";
-import { JUDGE_MODEL } from "@/lib/constants";
+import { SETUP_MODEL } from "@/lib/constants";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// 교육과정 단원 기반 수업 설정 자동 생성(오개념·선수학습·학습단계 초안)
+// 교육과정 단원(+교사 업로드 자료) 기반 수업 설정 자동 생성(오개념·선수학습·학습단계 초안)
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user || session.user.role !== "teacher") {
     return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
   }
 
-  const { curriculumUnitId } = await req.json();
+  const { curriculumUnitId, knowledgeFileIds } = await req.json();
   const u = getCurriculumUnit(Number(curriculumUnitId));
   if (!u) {
     return NextResponse.json({ error: "단원을 찾을 수 없습니다" }, { status: 400 });
   }
 
+  // 교사가 직접 선택한 지식파일 내용을 추가 참고자료로(본인 소유만)
+  let extraMaterial = "";
+  if (Array.isArray(knowledgeFileIds) && knowledgeFileIds.length > 0) {
+    const files = await prisma.knowledgeFile.findMany({
+      where: { id: { in: knowledgeFileIds }, teacherId: session.user.id },
+      select: { fileName: true, content: true },
+    });
+    extraMaterial = files.map((f) => `[${f.fileName}]\n${f.content}`).join("\n\n").slice(0, 12000);
+  }
+
   try {
     const resp = await openai.chat.completions.create({
-      model: JUDGE_MODEL,
-      max_tokens: 1500,
+      model: SETUP_MODEL,
+      max_completion_tokens: 4000, // 추론 토큰 포함이라 넉넉히
       response_format: { type: "json_object" },
       messages: [
         {
@@ -34,6 +45,7 @@ export async function POST(req: NextRequest) {
             unit: u.unit,
             standards: u.standards,
             content: u.content,
+            extraMaterial: extraMaterial || undefined,
           }),
         },
       ],

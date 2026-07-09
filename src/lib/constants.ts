@@ -14,6 +14,10 @@ export function toEmail(username: string): string {
 export const CHAT_MODEL = "gpt-4o";
 export const JUDGE_MODEL = "gpt-4o";
 
+// 수업 자동 구성은 수업당 1회만 호출 → 비용 부담이 적어, 교육적 추론이 강한 상위 모델 사용.
+// gpt-5 계열은 추론 모델이라 max_tokens 대신 max_completion_tokens를 쓴다.
+export const SETUP_MODEL = "gpt-5.5";
+
 // DB에 문자열로 저장된 JSON 필드 파싱 — 깨진 데이터가 있어도 500 대신 기본값으로 진행
 export function parseJsonArray(raw: string): string[] {
   try {

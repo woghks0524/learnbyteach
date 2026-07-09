@@ -5,12 +5,17 @@ export function buildCourseSetupPrompt(input: {
   unit: string;
   standards: string;
   content: string;
+  extraMaterial?: string; // 교사가 직접 올린 지식파일 내용(있으면 최우선 반영)
 }): string {
+  const extra = input.extraMaterial
+    ? `\n[교사가 직접 올린 자료 — 이 수업의 실제 자료이니 위 교육과정 내용보다 이걸 우선해서 반영해]\n${input.extraMaterial}\n`
+    : "";
   return `너는 초등학교 교사의 수업 설계를 돕는 조교야. 학생이 "모르는 AI 학생"에게 개념을 가르치며 배우는 앱을 위한 설정 초안을 만들어.
 
 [대상] ${input.grade} ${input.subject} · 단원 "${input.unit}"
 [성취기준] ${input.standards || "(없음)"}
 [단원 학습내용] ${input.content}
+${extra}
 
 위 단원에 대해, 실제 이 학년 학생 수준에 딱 맞는 설정을 JSON으로 만들어:
 

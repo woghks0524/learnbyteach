@@ -95,7 +95,7 @@ export default function NewCoursePage() {
       const res = await fetch("/api/courses/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ curriculumUnitId: Number(cur.unitId) }),
+        body: JSON.stringify({ curriculumUnitId: Number(cur.unitId), knowledgeFileIds: selectedFileIds }),
       });
       if (!res.ok) throw new Error();
       const d = await res.json();
@@ -325,6 +325,9 @@ export default function NewCoursePage() {
                 </button>
                 <span className="text-sm text-gray-600">
                   이 단원의 <b>흔한 오개념·선수학습·학습 단계(완료 기준)</b>를 AI가 초안으로 채워줘요.
+                  {selectedFileIds.length > 0
+                    ? " 선택한 지식파일도 함께 반영해요."
+                    : " (아래에서 지식파일을 먼저 선택하면 그 자료도 함께 반영해요.)"}
                 </span>
               </div>
               {genMsg && <p className="text-sm text-indigo-700 mt-2">{genMsg}</p>}
