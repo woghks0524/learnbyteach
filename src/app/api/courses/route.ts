@@ -62,6 +62,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // AI 자동 구성 등으로 넘어온 학습 단계(있으면 함께 생성)
+  const steps = Array.isArray(body.steps) ? body.steps : [];
+
   const course = await prisma.course.create({
     data: {
       teacherId: session.user.id,
@@ -79,6 +82,18 @@ export async function POST(req: NextRequest) {
         create: knowledgeFileIds.map((fileId: string) => ({
           knowledgeFileId: fileId,
         })),
+      },
+      steps: {
+        create: steps
+          .filter((s: { title?: string }) => s && s.title)
+          .map((s: { title: string; description?: string; aiFocus?: string; completionCriteria?: string; aiPersonality?: string }, i: number) => ({
+            order: i + 1,
+            title: s.title,
+            description: s.description || null,
+            aiFocus: s.aiFocus || null,
+            completionCriteria: s.completionCriteria || null,
+            aiPersonality: s.aiPersonality || body.personality || "curious",
+          })),
       },
     },
   });

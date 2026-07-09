@@ -1,3 +1,34 @@
+// 수업 자동 구성 — 교육과정 단원 정보를 받아 오개념·선수학습·학습단계 초안을 생성하는 프롬프트
+export function buildCourseSetupPrompt(input: {
+  grade: string;
+  subject: string;
+  unit: string;
+  standards: string;
+  content: string;
+}): string {
+  return `너는 초등학교 교사의 수업 설계를 돕는 조교야. 학생이 "모르는 AI 학생"에게 개념을 가르치며 배우는 앱을 위한 설정 초안을 만들어.
+
+[대상] ${input.grade} ${input.subject} · 단원 "${input.unit}"
+[성취기준] ${input.standards || "(없음)"}
+[단원 학습내용] ${input.content}
+
+위 단원에 대해, 실제 이 학년 학생 수준에 딱 맞는 설정을 JSON으로 만들어:
+
+1. "misconceptions": 이 단원에서 **실제 초등학생이 흔히 갖는 오개념** 3~5개. 두루뭉술하지 말고 구체적으로("곰팡이와 버섯은 식물이다", "세균은 모두 나쁘고 병만 일으킨다"처럼). 이 학년 학생이 진짜로 헷갈리는 것만.
+2. "knownTopics": 이 단원을 배우기 전, **이전 학년까지 이미 배운 선수학습** 2~4개(예: "동물과 식물의 분류", "생물과 무생물의 차이"). 이 단원 내용은 넣지 마.
+3. "unknownTopics": 이 단원에서 학생이 새로 배워야 해서 **아직 모르는 핵심 개념** 2~4개.
+4. "comprehensionLevel": "low" | "medium" | "high" 중 이 단원·학년에 적절한 기본값(보통 "medium").
+5. "personality": "passive"(수동적) | "curious"(호기심) | "challenging"(도전적) 중 기본값(보통 "curious").
+6. "steps": 이 단원을 2~4개의 **학습 단계**로 나눠. 각 단계는:
+   - "title": 짧은 단계 이름(예: "다양한 생물 관찰하기")
+   - "aiFocus": 이 단계에서 AI 학생이 집중할 주제 범위(한 문장)
+   - "completionCriteria": 학생(가르치는 사람)이 **무엇을 자기 말로 정확히 설명하면** 이 단계가 끝나는지. 구체적인 핵심 요소로. (심판 AI가 이 기준으로 통과를 판정함)
+   단계는 학습내용의 흐름(관찰/이해 → 적용/영향 → 심화/활용)을 따르게.
+
+반드시 이 JSON만 반환(다른 텍스트 없이):
+{"misconceptions": ["..."], "knownTopics": ["..."], "unknownTopics": ["..."], "comprehensionLevel": "medium", "personality": "curious", "steps": [{"title": "...", "aiFocus": "...", "completionCriteria": "..."}]}`;
+}
+
 interface AIProfileConfig {
   subject: string;
   unit: string;

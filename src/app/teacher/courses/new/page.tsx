@@ -63,9 +63,16 @@ export default function NewCoursePage() {
     (c) => c.grade === g && c.semester === s && c.subject === cur.subject && c.publisher === cur.publisher
   );
 
+  // AI 자동 구성 결과(학습 단계)
+  const [genSteps, setGenSteps] = useState<{ title: string; aiFocus: string; completionCriteria: string }[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const [genMsg, setGenMsg] = useState("");
+
   // 단원을 고르면 과목·단원·학년을 자동 입력
   const selectUnit = (unitId: string) => {
     setCur((p) => ({ ...p, unitId }));
+    setGenSteps([]);
+    setGenMsg("");
     const item = curriculum.find((c) => c.id === Number(unitId));
     if (item) {
       setForm((f) => ({
@@ -77,6 +84,41 @@ export default function NewCoursePage() {
       }));
     }
   };
+
+  // AI가 오개념·선수학습·학습단계를 자동으로 채운다
+  const autoConfigure = async () => {
+    if (!cur.unitId) return;
+    setGenerating(true);
+    setGenMsg("");
+    setError("");
+    try {
+      const res = await fetch("/api/courses/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ curriculumUnitId: Number(cur.unitId) }),
+      });
+      if (!res.ok) throw new Error();
+      const d = await res.json();
+      setForm((f) => ({
+        ...f,
+        comprehensionLevel: d.comprehensionLevel || f.comprehensionLevel,
+        personality: d.personality || f.personality,
+        knownTopics: (d.knownTopics || []).join(", "),
+        unknownTopics: (d.unknownTopics || []).join(", "),
+        misconceptions: (d.misconceptions || []).join("\n"),
+      }));
+      setGenSteps(Array.isArray(d.steps) ? d.steps : []);
+      setGenMsg(`✨ AI가 채웠어요 — 오개념 ${(d.misconceptions || []).length}개, 학습 단계 ${(d.steps || []).length}개. 아래에서 확인·수정하세요.`);
+    } catch {
+      setGenMsg("자동 구성에 실패했어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const updateStep = (i: number, field: "title" | "aiFocus" | "completionCriteria", value: string) =>
+    setGenSteps((prev) => prev.map((st, idx) => (idx === i ? { ...st, [field]: value } : st)));
+  const removeStep = (i: number) => setGenSteps((prev) => prev.filter((_, idx) => idx !== i));
 
   // 과목 입력하면 관련 파일 필터링
   const filteredFiles = form.subject
@@ -105,6 +147,7 @@ export default function NewCoursePage() {
           misconceptions: form.misconceptions.split("\n").map((s) => s.trim()).filter(Boolean),
           knowledgeFileIds: selectedFileIds,
           curriculumUnitId: cur.unitId ? Number(cur.unitId) : null,
+          steps: genSteps.filter((st) => st.title.trim()),
         }),
       });
 
@@ -265,6 +308,60 @@ export default function NewCoursePage() {
           {cur.unitId && (
             <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
               ✅ 이 단원의 학습내용이 정답지로 등록됩니다. 아래 &apos;수업 정보&apos;가 자동으로 채워졌어요.
+            </div>
+          )}
+
+          {/* AI 자동 구성 */}
+          {cur.unitId && (
+            <div className="rounded-lg border-2 border-dashed border-indigo-200 bg-indigo-50/50 p-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={autoConfigure}
+                  disabled={generating}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-60"
+                >
+                  {generating ? "AI가 구성하는 중..." : "🪄 AI로 수업 자동 구성"}
+                </button>
+                <span className="text-sm text-gray-600">
+                  이 단원의 <b>흔한 오개념·선수학습·학습 단계(완료 기준)</b>를 AI가 초안으로 채워줘요.
+                </span>
+              </div>
+              {genMsg && <p className="text-sm text-indigo-700 mt-2">{genMsg}</p>}
+            </div>
+          )}
+
+          {/* 생성된 학습 단계 미리보기·편집 */}
+          {genSteps.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-gray-800">학습 단계 <span className="font-normal text-gray-400">(AI 초안 — 수정 가능, 저장 시 함께 생성돼요)</span></h3>
+              {genSteps.map((st, i) => (
+                <div key={i} className="rounded-lg border border-gray-200 p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                    <input
+                      value={st.title}
+                      onChange={(e) => updateStep(i, "title", e.target.value)}
+                      placeholder="단계 이름"
+                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    />
+                    <button type="button" onClick={() => removeStep(i)} className="text-gray-400 hover:text-red-500 px-1">&times;</button>
+                  </div>
+                  <input
+                    value={st.aiFocus}
+                    onChange={(e) => updateStep(i, "aiFocus", e.target.value)}
+                    placeholder="이 단계에서 다룰 주제"
+                    className="w-full px-2 py-1 border border-gray-200 rounded text-xs text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  />
+                  <textarea
+                    value={st.completionCriteria}
+                    onChange={(e) => updateStep(i, "completionCriteria", e.target.value)}
+                    placeholder="완료 기준 — 학생이 무엇을 설명하면 이 단계가 끝나는지"
+                    rows={2}
+                    className="w-full px-2 py-1 border border-gray-200 rounded text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  />
+                </div>
+              ))}
             </div>
           )}
         </div>
