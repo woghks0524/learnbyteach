@@ -21,6 +21,7 @@ export default function StudentDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [courses, setCourses] = useState<CourseInstance[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -29,7 +30,11 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetch("/api/instances").then((r) => r.json()).then(setCourses);
+      fetch("/api/instances")
+        .then((r) => r.json())
+        .then((d) => setCourses(Array.isArray(d) ? d : []))
+        .catch(() => setCourses([]))
+        .finally(() => setLoaded(true));
     }
   }, [status]);
 
@@ -51,7 +56,12 @@ export default function StudentDashboard() {
           </button>
         </div>
 
-        {courses.length === 0 ? (
+        {!loaded ? (
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl p-5 h-24 animate-pulse" />
+            <div className="bg-white rounded-2xl p-5 h-24 animate-pulse" />
+          </div>
+        ) : courses.length === 0 ? (
           <div className="bg-white rounded-2xl p-10 text-center text-gray-500 border-2 border-dashed border-sky-200">
             <p className="text-4xl mb-3">🌱</p>
             <p className="text-lg font-medium">아직 수업이 없어요</p>

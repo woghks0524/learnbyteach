@@ -26,10 +26,15 @@ export default function TeacherDashboard() {
   }, [status, session, router]);
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetch("/api/courses").then((r) => r.json()).then(setCourses);
+      fetch("/api/courses")
+        .then((r) => r.json())
+        .then((d) => setCourses(Array.isArray(d) ? d : []))
+        .catch(() => setCourses([]))
+        .finally(() => setLoaded(true));
     }
   }, [status]);
 
@@ -97,7 +102,12 @@ export default function TeacherDashboard() {
         </Link>
       </div>
 
-      {courses.length === 0 ? (
+      {!loaded ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="bg-white rounded-xl p-4 h-24 animate-pulse" />
+          <div className="bg-white rounded-xl p-4 h-24 animate-pulse" />
+        </div>
+      ) : courses.length === 0 ? (
         <div className="bg-white rounded-xl p-8 text-center text-gray-500">
           아직 개설한 수업이 없습니다
         </div>
