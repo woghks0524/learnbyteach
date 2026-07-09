@@ -65,6 +65,16 @@ export async function POST(req: NextRequest) {
   // AI 자동 구성 등으로 넘어온 학습 단계(있으면 함께 생성)
   const steps = Array.isArray(body.steps) ? body.steps : [];
 
+  // 등록할 학생: 그룹(멤버 전체) + 개별 학생 id 합집합
+  const enrollIds = new Set<string>(Array.isArray(body.enrollStudentIds) ? body.enrollStudentIds : []);
+  if (body.enrollGroupId) {
+    const grp = await prisma.studentGroup.findUnique({
+      where: { id: body.enrollGroupId, teacherId: session.user.id },
+      include: { members: { select: { studentId: true } } },
+    });
+    grp?.members.forEach((m) => enrollIds.add(m.studentId));
+  }
+
   const course = await prisma.course.create({
     data: {
       teacherId: session.user.id,
@@ -82,6 +92,9 @@ export async function POST(req: NextRequest) {
         create: knowledgeFileIds.map((fileId: string) => ({
           knowledgeFileId: fileId,
         })),
+      },
+      enrollments: {
+        create: [...enrollIds].map((studentId) => ({ studentId })),
       },
       steps: {
         create: steps

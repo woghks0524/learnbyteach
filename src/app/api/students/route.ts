@@ -10,6 +10,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
   }
 
+  // ?mine=1 : 내가 만든 학생 전체 목록
+  if (req.nextUrl.searchParams.get("mine")) {
+    const mine = await prisma.user.findMany({
+      where: { role: "student", createdById: session.user.id },
+      select: { id: true, name: true, email: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(mine);
+  }
+
   const query = req.nextUrl.searchParams.get("q") || "";
 
   if (query.length < 1) {

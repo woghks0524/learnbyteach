@@ -1,14 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { EMAIL_DOMAIN, toEmail } from "@/lib/constants";
+
+interface StudentRow { id: string; name: string; email: string }
+interface Group { id: string; name: string; students: StudentRow[] }
 
 export default function StudentManagementPage() {
   const router = useRouter();
   const [students, setStudents] = useState([{ name: "", username: "", password: "" }]);
   const [results, setResults] = useState<{ email: string; success: boolean; error?: string }[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // 내 학생 목록 + 그룹
+  const [myStudents, setMyStudents] = useState<StudentRow[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [groupName, setGroupName] = useState("");
+
+  const loadMine = () => {
+    fetch("/api/students?mine=1").then((r) => r.json()).then((d) => Array.isArray(d) && setMyStudents(d));
+    fetch("/api/groups").then((r) => r.json()).then((d) => Array.isArray(d) && setGroups(d));
+  };
+  useEffect(() => { loadMine(); }, []);
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const createGroup = async () => {
+    if (!groupName.trim() || selected.size === 0) return;
+    await fetch("/api/groups", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: groupName.trim(), studentIds: [...selected] }),
+    });
+    setGroupName("");
+    setSelected(new Set());
+    loadMine();
+  };
+
+  const deleteGroup = async (g: Group) => {
+    if (!window.confirm(`"${g.name}" 그룹을 삭제할까요? (학생 계정은 그대로 남아요)`)) return;
+    await fetch(`/api/groups/${g.id}`, { method: "DELETE" });
+    loadMine();
+  };
 
   // 엑셀 붙여넣기
   const [pasteText, setPasteText] = useState("");
@@ -54,6 +90,21 @@ export default function StudentManagementPage() {
       .filter(Boolean)
       .map((line) => line.split(/\t|,/).map((c) => c.trim()));
     fillFromRows(rows, "paste");
+  };
+
+  // 빈 양식(.xlsx) 내려받기 — 교사가 이 파일에 명단을 적어 다시 올리면 됨
+  const downloadTemplate = async () => {
+    const XLSX = await import("xlsx");
+    const rows = [
+      ["이름", "아이디", "비밀번호"],
+      ["홍길동", "hong01", "1234"],
+      ["김영희", "kim02", ""],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws["!cols"] = [{ wch: 12 }, { wch: 16 }, { wch: 12 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "학생명단");
+    XLSX.writeFile(wb, "학생명단_양식.xlsx");
   };
 
   // 엑셀/CSV 파일 업로드 → 첫 시트를 행 배열로 파싱 (xlsx는 파일 선택 시에만 동적 로드)
@@ -111,6 +162,7 @@ export default function StudentManagementPage() {
     const data = await res.json();
     setResults(data);
     setLoading(false);
+    loadMine(); // 새로 만든 학생을 목록에 반영
   };
 
   return (
@@ -139,11 +191,20 @@ export default function StudentManagementPage() {
         <p className="text-sm text-gray-500 mb-3">
           <b>이름 / 아이디 / 비밀번호</b> 순서의 엑셀(.xlsx)이나 CSV 파일을 올리면 자동으로 명단을 불러와요. 비밀번호 열이 없으면 공통 비밀번호가 적용됩니다.
         </p>
-        <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition cursor-pointer">
-          {importing ? "읽는 중..." : "엑셀 파일 선택 (.xlsx, .csv)"}
-          <input type="file" accept=".xlsx,.xls,.csv" onChange={importFile} className="hidden" disabled={importing} />
-        </label>
-        <span className="text-xs text-gray-400 ml-2">첫 시트의 이름·아이디·비밀번호 열을 읽어요</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={downloadTemplate}
+            className="inline-flex items-center gap-1.5 px-4 py-2 border border-blue-600 text-blue-700 rounded-lg text-sm hover:bg-blue-50 transition"
+          >
+            📥 빈 양식 내려받기
+          </button>
+          <label className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition cursor-pointer">
+            {importing ? "읽는 중..." : "엑셀 파일 선택 (.xlsx, .csv)"}
+            <input type="file" accept=".xlsx,.xls,.csv" onChange={importFile} className="hidden" disabled={importing} />
+          </label>
+        </div>
+        <p className="text-xs text-gray-400 mt-2">양식을 내려받아 명단을 적은 뒤 그대로 올리면 돼요. 첫 시트의 이름·아이디·비밀번호 열을 읽어요.</p>
       </div>
 
       {/* 엑셀 붙여넣기 */}
@@ -240,6 +301,66 @@ export default function StudentManagementPage() {
           </button>
         </div>
       </form>
+
+      {/* 내 학생 + 그룹 */}
+      <div className="bg-white rounded-xl shadow p-6 mt-6">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-semibold">👥 내 학생 <span className="font-normal text-gray-400 text-sm">({myStudents.length}명)</span></h2>
+          {selected.size > 0 && <span className="text-sm text-blue-600">{selected.size}명 선택됨</span>}
+        </div>
+        <p className="text-sm text-gray-500 mb-3">내가 만든 학생이에요. 체크해서 그룹(반)으로 묶으면 수업 개설 때 한 번에 등록할 수 있어요.</p>
+
+        {myStudents.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4 text-center">아직 만든 학생이 없어요. 위에서 계정을 만들어 주세요.</p>
+        ) : (
+          <>
+            <div className="max-h-56 overflow-y-auto border border-gray-100 rounded-lg divide-y">
+              {myStudents.map((st) => (
+                <label key={st.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50">
+                  <input type="checkbox" checked={selected.has(st.id)} onChange={() => toggleSelect(st.id)} className="rounded" />
+                  <span className="text-sm font-medium">{st.name}</span>
+                  <span className="text-xs text-gray-400">{st.email.replace(`@${EMAIL_DOMAIN}`, "")}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <input
+                type="text"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                placeholder="그룹 이름 (예: 4학년 3반)"
+                className="flex-1 min-w-[180px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={createGroup}
+                disabled={!groupName.trim() || selected.size === 0}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition disabled:opacity-40"
+              >
+                선택한 {selected.size}명으로 그룹 만들기
+              </button>
+            </div>
+          </>
+        )}
+
+        {groups.length > 0 && (
+          <div className="mt-5">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">그룹 <span className="font-normal text-gray-400">({groups.length}개)</span></h3>
+            <div className="space-y-2">
+              {groups.map((g) => (
+                <div key={g.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                  <div className="min-w-0">
+                    <span className="text-sm font-medium">{g.name}</span>
+                    <span className="text-xs text-gray-500 ml-2">{g.students.length}명</span>
+                    <p className="text-xs text-gray-400 truncate">{g.students.map((s) => s.name).join(", ")}</p>
+                  </div>
+                  <button type="button" onClick={() => deleteGroup(g)} className="text-gray-300 hover:text-red-500 px-2 shrink-0" title="그룹 삭제">🗑</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

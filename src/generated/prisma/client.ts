@@ -47,6 +47,16 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model StudentGroup
+ * 
+ */
+export type StudentGroup = Prisma.StudentGroupModel
+/**
+ * Model StudentGroupMember
+ * 
+ */
+export type StudentGroupMember = Prisma.StudentGroupMemberModel
+/**
  * Model KnowledgeFile
  * 
  */

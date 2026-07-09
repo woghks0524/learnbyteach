@@ -26,6 +26,32 @@ model User {
   createdBy       User?     @relation("CreatedBy", fields: [createdById], references: [id])
   enrollments     CourseEnrollment[]
   instances       AIInstance[]
+
+  // 그룹(반) 관계
+  studentGroups   StudentGroup[]        @relation("TeacherGroups") // 교사가 만든 그룹
+  groupMemberships StudentGroupMember[] // 학생이 속한 그룹
+}
+
+// ===== 학생 그룹(반) — 교사가 학생을 묶어 관리 =====
+model StudentGroup {
+  id        String   @id @default(cuid())
+  teacherId String
+  name      String   // 예: "4학년 3반"
+  createdAt DateTime @default(now())
+
+  teacher User                 @relation("TeacherGroups", fields: [teacherId], references: [id])
+  members StudentGroupMember[]
+}
+
+model StudentGroupMember {
+  id        String @id @default(cuid())
+  groupId   String
+  studentId String
+
+  group   StudentGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  student User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, studentId])
 }
 
 // ===== 지식파일 (교사 라이브러리) =====

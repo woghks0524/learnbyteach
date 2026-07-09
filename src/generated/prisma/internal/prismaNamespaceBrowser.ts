@@ -52,6 +52,8 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  StudentGroup: 'StudentGroup',
+  StudentGroupMember: 'StudentGroupMember',
   KnowledgeFile: 'KnowledgeFile',
   CourseKnowledgeFile: 'CourseKnowledgeFile',
   Course: 'Course',
@@ -89,6 +91,25 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const StudentGroupScalarFieldEnum = {
+  id: 'id',
+  teacherId: 'teacherId',
+  name: 'name',
+  createdAt: 'createdAt'
+} as const
+
+export type StudentGroupScalarFieldEnum = (typeof StudentGroupScalarFieldEnum)[keyof typeof StudentGroupScalarFieldEnum]
+
+
+export const StudentGroupMemberScalarFieldEnum = {
+  id: 'id',
+  groupId: 'groupId',
+  studentId: 'studentId'
+} as const
+
+export type StudentGroupMemberScalarFieldEnum = (typeof StudentGroupMemberScalarFieldEnum)[keyof typeof StudentGroupMemberScalarFieldEnum]
 
 
 export const KnowledgeFileScalarFieldEnum = {
