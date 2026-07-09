@@ -37,9 +37,17 @@ interface CourseDetail {
   subject: string;
   unit: string;
   gradeLevel: string;
+  description: string | null;
+  comprehensionLevel: string;
+  personality: string;
+  knownTopics: string;
+  unknownTopics: string;
+  misconceptions: string;
   enrollments: { student: Student }[];
   instances: Instance[];
 }
+
+const parseArr = (s: string): string[] => { try { const v = JSON.parse(s); return Array.isArray(v) ? v : []; } catch { return []; } };
 
 const AVATAR_OPTIONS = [
   { key: "default", label: "기본", emoji: "🧑‍🎓" },
@@ -64,7 +72,12 @@ export default function CourseDetailPage() {
   const { id } = useParams();
   const router = useRouter();
   const [course, setCourse] = useState<CourseDetail | null>(null);
-  const [activeTab, setActiveTab] = useState<"students" | "conversations" | "steps">("students");
+  const [activeTab, setActiveTab] = useState<"students" | "conversations" | "steps" | "settings">("students");
+
+  // 수업 설정 편집
+  const [settings, setSettings] = useState({ name: "", description: "", subject: "", unit: "", gradeLevel: "", comprehensionLevel: "medium", personality: "curious", knownTopics: "", unknownTopics: "", misconceptions: "" });
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsMsg, setSettingsMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Student[]>([]);
   const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
@@ -82,9 +95,48 @@ export default function CourseDetailPage() {
       .then((r) => r.json())
       .then((data) => {
         setCourse(data);
+        setSettings({
+          name: data.name ?? "",
+          description: data.description ?? "",
+          subject: data.subject ?? "",
+          unit: data.unit ?? "",
+          gradeLevel: data.gradeLevel ?? "",
+          comprehensionLevel: data.comprehensionLevel ?? "medium",
+          personality: data.personality ?? "curious",
+          knownTopics: parseArr(data.knownTopics ?? "[]").join(", "),
+          unknownTopics: parseArr(data.unknownTopics ?? "[]").join(", "),
+          misconceptions: parseArr(data.misconceptions ?? "[]").join("\n"),
+        });
         setLoading(false);
       });
   }, [id]);
+
+  const saveSettings = async () => {
+    setSettingsSaving(true);
+    setSettingsMsg("");
+    try {
+      const res = await fetch(`/api/courses/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: settings.name,
+          description: settings.description,
+          subject: settings.subject,
+          unit: settings.unit,
+          gradeLevel: settings.gradeLevel,
+          comprehensionLevel: settings.comprehensionLevel,
+          personality: settings.personality,
+          knownTopics: settings.knownTopics.split(",").map((s) => s.trim()).filter(Boolean),
+          unknownTopics: settings.unknownTopics.split(",").map((s) => s.trim()).filter(Boolean),
+          misconceptions: settings.misconceptions.split("\n").map((s) => s.trim()).filter(Boolean),
+        }),
+      });
+      if (res.ok) { setSettingsMsg("저장됐어요 ✅"); loadCourse(); }
+      else setSettingsMsg("저장에 실패했어요.");
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
 
   const loadSteps = useCallback(() => {
     fetch(`/api/courses/${id}/steps`)
@@ -193,6 +245,12 @@ export default function CourseDetailPage() {
           className={`flex-1 py-2 rounded-md text-sm font-medium transition ${activeTab === "conversations" ? "bg-white shadow" : "text-gray-600"}`}
         >
           대화 열람 ({course.instances.length}명)
+        </button>
+        <button
+          onClick={() => setActiveTab("settings")}
+          className={`flex-1 py-2 rounded-md text-sm font-medium transition ${activeTab === "settings" ? "bg-white shadow" : "text-gray-600"}`}
+        >
+          설정
         </button>
       </div>
 
@@ -519,6 +577,77 @@ export default function CourseDetailPage() {
             ) : (
               <div className="bg-white rounded-xl p-8 text-center text-gray-500">학생을 선택하세요</div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 설정 탭 */}
+      {activeTab === "settings" && (
+        <div className="bg-white rounded-xl p-6 space-y-5">
+          <div>
+            <h3 className="font-semibold text-gray-800 border-b pb-2 mb-3">수업 정보</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">수업 이름</label>
+                <input type="text" value={settings.name} onChange={(e) => setSettings({ ...settings, name: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">과목</label><input type="text" value={settings.subject} onChange={(e) => setSettings({ ...settings, subject: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">단원</label><input type="text" value={settings.unit} onChange={(e) => setSettings({ ...settings, unit: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">학년</label><input type="text" value={settings.gradeLevel} onChange={(e) => setSettings({ ...settings, gradeLevel: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">설명 <span className="text-gray-400 font-normal">(선택)</span></label>
+                <input type="text" value={settings.description} onChange={(e) => setSettings({ ...settings, description: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-800 border-b pb-2 mb-3">AI 학생 설정</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">이해력 수준</label>
+                <select value={settings.comprehensionLevel} onChange={(e) => setSettings({ ...settings, comprehensionLevel: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="low">낮음 - 쉽게 설명해줘야 이해</option>
+                  <option value="medium">보통 - 기본은 알아듣지만 심화는 어려움</option>
+                  <option value="high">높음 - 잘 알아듣고 날카로운 질문</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">성격</label>
+                <select value={settings.personality} onChange={(e) => setSettings({ ...settings, personality: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="passive">수동적 - 주로 듣고 가끔 질문</option>
+                  <option value="curious">호기심 - 왜? 어떻게? 질문 많음</option>
+                  <option value="challenging">도전적 - 반박하고 논리 빈틈 찾음</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-800 border-b pb-2 mb-3">지식 범위</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">선수학습 — 이전 학년에 배운 개념 (쉼표로 구분)</label>
+                <input type="text" value={settings.knownTopics} onChange={(e) => setSettings({ ...settings, knownTopics: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">아직 모르는 개념 (쉼표로 구분)</label>
+                <input type="text" value={settings.unknownTopics} onChange={(e) => setSettings({ ...settings, unknownTopics: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">흔한 오개념 (줄바꿈으로 구분)</label>
+                <textarea value={settings.misconceptions} onChange={(e) => setSettings({ ...settings, misconceptions: e.target.value })} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-1">
+            <button onClick={saveSettings} disabled={settingsSaving} className="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50">
+              {settingsSaving ? "저장 중..." : "설정 저장"}
+            </button>
+            {settingsMsg && <span className="text-sm text-gray-600">{settingsMsg}</span>}
           </div>
         </div>
       )}

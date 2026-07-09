@@ -46,6 +46,43 @@ export default function StudentManagementPage() {
     loadMine();
   };
 
+  // 학생 계정 삭제 / 비밀번호 초기화
+  const deleteStudent = async (st: StudentRow) => {
+    if (!window.confirm(`"${st.name}" 학생 계정을 삭제할까요?\n이 학생의 대화 기록·수업 등록이 모두 사라지고 되돌릴 수 없어요.`)) return;
+    await fetch(`/api/students/${st.id}`, { method: "DELETE" });
+    loadMine();
+  };
+  const resetPassword = async (st: StudentRow) => {
+    const pw = window.prompt(`"${st.name}" 학생의 새 비밀번호를 입력하세요 (4자 이상)`);
+    if (!pw) return;
+    const res = await fetch(`/api/students/${st.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: pw }),
+    });
+    alert(res.ok ? "비밀번호가 변경됐어요." : "변경에 실패했어요 (4자 이상인지 확인).");
+  };
+
+  // 그룹 멤버 편집
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const [editMembers, setEditMembers] = useState<Set<string>>(new Set());
+  const [editName, setEditName] = useState("");
+  const openGroupEdit = (g: Group) => {
+    setEditingGroup(g);
+    setEditName(g.name);
+    setEditMembers(new Set(g.students.map((s) => s.id)));
+  };
+  const saveGroupEdit = async () => {
+    if (!editingGroup) return;
+    await fetch(`/api/groups/${editingGroup.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: editName.trim() || editingGroup.name, studentIds: [...editMembers] }),
+    });
+    setEditingGroup(null);
+    loadMine();
+  };
+
   // 엑셀 붙여넣기
   const [pasteText, setPasteText] = useState("");
   const [commonPw, setCommonPw] = useState("");
@@ -316,11 +353,15 @@ export default function StudentManagementPage() {
           <>
             <div className="max-h-56 overflow-y-auto border border-gray-100 rounded-lg divide-y">
               {myStudents.map((st) => (
-                <label key={st.id} className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-gray-50">
-                  <input type="checkbox" checked={selected.has(st.id)} onChange={() => toggleSelect(st.id)} className="rounded" />
-                  <span className="text-sm font-medium">{st.name}</span>
-                  <span className="text-xs text-gray-400">{st.email.replace(`@${EMAIL_DOMAIN}`, "")}</span>
-                </label>
+                <div key={st.id} className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50">
+                  <label className="flex items-center gap-3 cursor-pointer flex-1 min-w-0">
+                    <input type="checkbox" checked={selected.has(st.id)} onChange={() => toggleSelect(st.id)} className="rounded" />
+                    <span className="text-sm font-medium">{st.name}</span>
+                    <span className="text-xs text-gray-400 truncate">{st.email.replace(`@${EMAIL_DOMAIN}`, "")}</span>
+                  </label>
+                  <button type="button" onClick={() => resetPassword(st)} className="text-xs text-gray-400 hover:text-blue-600 shrink-0" title="비밀번호 초기화">🔑</button>
+                  <button type="button" onClick={() => deleteStudent(st)} className="text-xs text-gray-300 hover:text-red-500 shrink-0" title="학생 삭제">🗑</button>
+                </div>
               ))}
             </div>
             <div className="flex flex-wrap items-center gap-2 mt-3">
@@ -348,13 +389,36 @@ export default function StudentManagementPage() {
             <h3 className="text-sm font-semibold text-gray-700 mb-2">그룹 <span className="font-normal text-gray-400">({groups.length}개)</span></h3>
             <div className="space-y-2">
               {groups.map((g) => (
-                <div key={g.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
-                  <div className="min-w-0">
-                    <span className="text-sm font-medium">{g.name}</span>
-                    <span className="text-xs text-gray-500 ml-2">{g.students.length}명</span>
-                    <p className="text-xs text-gray-400 truncate">{g.students.map((s) => s.name).join(", ")}</p>
-                  </div>
-                  <button type="button" onClick={() => deleteGroup(g)} className="text-gray-300 hover:text-red-500 px-2 shrink-0" title="그룹 삭제">🗑</button>
+                <div key={g.id} className="px-3 py-2 bg-gray-50 rounded-lg">
+                  {editingGroup?.id === g.id ? (
+                    <div className="space-y-2">
+                      <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-2 py-1 border border-gray-300 rounded text-sm" placeholder="그룹 이름" />
+                      <div className="max-h-40 overflow-y-auto bg-white border border-gray-200 rounded divide-y">
+                        {myStudents.map((st) => (
+                          <label key={st.id} className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-gray-50 text-sm">
+                            <input type="checkbox" checked={editMembers.has(st.id)} onChange={() => setEditMembers((prev) => { const n = new Set(prev); n.has(st.id) ? n.delete(st.id) : n.add(st.id); return n; })} className="rounded" />
+                            {st.name}
+                          </label>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={saveGroupEdit} className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">저장 ({editMembers.size}명)</button>
+                        <button type="button" onClick={() => setEditingGroup(null)} className="px-3 py-1 border border-gray-300 rounded text-sm text-gray-600">취소</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0">
+                        <span className="text-sm font-medium">{g.name}</span>
+                        <span className="text-xs text-gray-500 ml-2">{g.students.length}명</span>
+                        <p className="text-xs text-gray-400 truncate">{g.students.map((s) => s.name).join(", ") || "(비어 있음)"}</p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button type="button" onClick={() => openGroupEdit(g)} className="text-gray-400 hover:text-blue-600 px-2 text-sm" title="멤버·이름 편집">✏️</button>
+                        <button type="button" onClick={() => deleteGroup(g)} className="text-gray-300 hover:text-red-500 px-2" title="그룹 삭제">🗑</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

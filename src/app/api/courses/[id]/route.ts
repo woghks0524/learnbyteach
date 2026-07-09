@@ -105,3 +105,36 @@ export async function DELETE(
 
   return NextResponse.json({ success: true });
 }
+
+// 수업 설정 수정 — 이름·설명·과목·단원·학년·AI학생 설정·지식범위
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "teacher") {
+    return NextResponse.json({ error: "권한이 없습니다" }, { status: 403 });
+  }
+  const { id } = await params;
+  const course = await prisma.course.findUnique({
+    where: { id, teacherId: session.user.id },
+    select: { id: true },
+  });
+  if (!course) return NextResponse.json({ error: "수업을 찾을 수 없습니다" }, { status: 404 });
+
+  const b = await req.json();
+  const data: Record<string, unknown> = {};
+  if (typeof b.name === "string" && b.name.trim()) data.name = b.name.trim();
+  if (typeof b.description === "string") data.description = b.description.trim() || null;
+  if (typeof b.subject === "string" && b.subject.trim()) data.subject = b.subject.trim();
+  if (typeof b.unit === "string" && b.unit.trim()) data.unit = b.unit.trim();
+  if (typeof b.gradeLevel === "string" && b.gradeLevel.trim()) data.gradeLevel = b.gradeLevel.trim();
+  if (["low", "medium", "high"].includes(b.comprehensionLevel)) data.comprehensionLevel = b.comprehensionLevel;
+  if (["passive", "curious", "challenging"].includes(b.personality)) data.personality = b.personality;
+  if (Array.isArray(b.knownTopics)) data.knownTopics = JSON.stringify(b.knownTopics);
+  if (Array.isArray(b.unknownTopics)) data.unknownTopics = JSON.stringify(b.unknownTopics);
+  if (Array.isArray(b.misconceptions)) data.misconceptions = JSON.stringify(b.misconceptions);
+
+  const updated = await prisma.course.update({ where: { id }, data });
+  return NextResponse.json({ id: updated.id });
+}
