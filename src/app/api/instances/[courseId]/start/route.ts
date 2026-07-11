@@ -58,12 +58,23 @@ export async function POST(
       stepId: m.stepProgressId ? pmap.get(m.stepProgressId) ?? null : null,
     }));
 
+    // 현재 단계가 이미 완료됐는데 아직 안 넘어간 상태면(껐다 켜도) "다음으로" 버튼을 띄우도록 알려준다
+    let pendingNextStep: { id: string; order: number; title: string } | null = null;
+    let allStepsCompleted = false;
+    if (currentStep && stepProgress?.completed) {
+      const nx = steps.find((s) => s.order > currentStep.order) ?? null;
+      if (nx) pendingNextStep = { id: nx.id, order: nx.order, title: nx.title };
+      else allStepsCompleted = true;
+    }
+
     return NextResponse.json({
       instanceId: instance.id,
       messages,
       steps,
       currentStep,
       stepProgress,
+      pendingNextStep,
+      allStepsCompleted,
     });
   }
 

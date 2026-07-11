@@ -128,8 +128,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  let transitionMessage: string | null = null;
-  let newStep: typeof currentStep | null = null;
+  // 단계 통과 시 — 곧바로 넘기지 않고 "완료됨 + 다음 단계 정보"만 알려준다.
+  // 실제 다음 단계 진입은 학생이 버튼을 눌러야(→ /advance) 일어난다.
+  let stepJustCompleted = false;
+  let nextStepInfo: { id: string; order: number; title: string } | null = null;
   let allStepsCompleted = false;
 
   if (stepCompleted && currentStep && stepProgress) {
@@ -137,59 +139,11 @@ export async function POST(req: NextRequest) {
       where: { id: stepProgress.id },
       data: { completed: true },
     });
+    stepJustCompleted = true;
 
     const nextStep = course.steps.find((s) => s.order > currentStep.order) ?? null;
-
     if (nextStep) {
-      const nextProgress = await prisma.stepProgress.upsert({
-        where: { instanceId_stepId: { instanceId, stepId: nextStep.id } },
-        create: { instanceId, stepId: nextStep.id },
-        update: {},
-      });
-
-      await prisma.aIInstance.update({
-        where: { id: instanceId },
-        data: { currentStepId: nextStep.id },
-      });
-
-      const transitionSystemPrompt = buildSystemPrompt({
-        subject: course.subject,
-        unit: course.unit,
-        gradeLevel: course.gradeLevel,
-        comprehensionLevel: course.comprehensionLevel,
-        personality: nextStep.aiPersonality,
-        knownTopics: parseJsonArray(course.knownTopics),
-        unknownTopics: parseJsonArray(course.unknownTopics),
-        misconceptions: parseJsonArray(course.misconceptions),
-        knowledgeContent: knowledgeContent || undefined,
-        comprehensionState: parseJsonObject(instance.comprehensionState),
-        stepFocus: nextStep.aiFocus ?? undefined,
-        aiName: nextStep.aiName,
-        stepTitle: nextStep.title,
-        completionCriteria: nextStep.completionCriteria ?? undefined,
-      });
-
-      const transitionResp = await openai.chat.completions.create({
-        model: CHAT_MODEL,
-        max_tokens: 200,
-        messages: [
-          { role: "system", content: transitionSystemPrompt },
-          {
-            role: "user",
-            content:
-              "(전 주제는 잘 배웠고, 같은 선생님과 같은 수업에서 새로운 주제로 자연스럽게 넘어가는 상황이야. 짧고 자연스럽게 새 주제로 호기심이나 모름을 살짝 드러내며 운을 띄워. '이제 다음 단계' 같은 메타적 표현은 절대 쓰지 마.)",
-          },
-        ],
-      });
-
-      const transitionText = (transitionResp.choices[0].message.content ?? "").trim();
-
-      await prisma.message.create({
-        data: { instanceId, role: "ai", content: transitionText, stepProgressId: nextProgress.id },
-      });
-
-      transitionMessage = transitionText;
-      newStep = nextStep;
+      nextStepInfo = { id: nextStep.id, order: nextStep.order, title: nextStep.title };
     } else {
       allStepsCompleted = true;
     }
@@ -245,8 +199,8 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     message: aiMessage,
-    transitionMessage,
-    newStep,
+    stepJustCompleted,
+    nextStep: nextStepInfo,
     allStepsCompleted,
   });
 }

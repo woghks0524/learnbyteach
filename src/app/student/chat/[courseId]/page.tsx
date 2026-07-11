@@ -39,6 +39,8 @@ export default function ChatPage() {
   const [currentStep, setCurrentStep] = useState<LessonStep | null>(null);
   const [activeStepId, setActiveStepId] = useState<string | null>(null); // 지금 보고 있는 단계 탭
   const [allStepsCompleted, setAllStepsCompleted] = useState(false);
+  const [pendingNextStep, setPendingNextStep] = useState<{ id: string; order: number; title: string } | null>(null); // 완료돼서 넘어갈 수 있는 다음 단계
+  const [advancing, setAdvancing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,6 +64,8 @@ export default function ChatPage() {
           setCurrentStep(data.currentStep);
           setActiveStepId(data.currentStep.id); // 현재 단계 탭을 기본으로 열어둠
         }
+        if (data.pendingNextStep) setPendingNextStep(data.pendingNextStep);
+        if (data.allStepsCompleted) setAllStepsCompleted(true);
         if (courseRes.ok) {
           const course = await courseRes.json();
           setCourseInfo({ name: course.name, subject: course.subject, unit: course.unit });
@@ -101,18 +105,12 @@ export default function ChatPage() {
       }
 
       const data = await res.json();
-      setMessages((prev) => {
-        const next = [...prev, { role: "ai", content: data.message, stepId: sendingStepId }];
-        if (data.transitionMessage && data.newStep) {
-          next.push({ role: "ai", content: data.transitionMessage, kind: "transition", stepId: data.newStep.id });
-        }
-        return next;
-      });
-      if (data.newStep) {
-        setCurrentStep(data.newStep);
-        setActiveStepId(data.newStep.id); // 새 단계로 자동 이동
+      setMessages((prev) => [...prev, { role: "ai", content: data.message, stepId: sendingStepId }]);
+      // 단계 통과 시: 곧바로 넘기지 않고 "다음으로" 버튼을 띄운다(마지막 메시지를 읽고 넘어가도록)
+      if (data.stepJustCompleted) {
+        if (data.nextStep) setPendingNextStep(data.nextStep);
+        if (data.allStepsCompleted) setAllStepsCompleted(true);
       }
-      if (data.allStepsCompleted) setAllStepsCompleted(true);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -120,6 +118,31 @@ export default function ChatPage() {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // "다음으로" 버튼 → 실제로 다음 단계 진입
+  const advance = async () => {
+    if (!pendingNextStep || advancing) return;
+    setAdvancing(true);
+    try {
+      const res = await fetch(`/api/instances/${courseId}/advance`, { method: "POST" });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      if (data.newStep) {
+        const ns = steps.find((s) => s.id === data.newStep.id) ?? data.newStep;
+        setMessages((prev) => [...prev, { role: "ai", content: data.message, stepId: data.stepId }]);
+        setCurrentStep(ns);
+        setActiveStepId(data.stepId);
+        setPendingNextStep(null);
+      } else if (data.allStepsCompleted) {
+        setAllStepsCompleted(true);
+        setPendingNextStep(null);
+      }
+    } catch {
+      // 실패 시 그대로 둔다(다시 시도 가능)
+    } finally {
+      setAdvancing(false);
     }
   };
 
@@ -271,11 +294,30 @@ export default function ChatPage() {
             </div>
           );
         })}
+        {/* 단계 완료 → 다음으로 (자동 전환 대신 학생이 눌러서 넘어감) */}
+        {pendingNextStep && isViewingCurrent && !allStepsCompleted && (
+          <div className="flex flex-col items-center gap-2 py-4">
+            <div className="w-full max-w-sm text-center px-6 py-5 bg-green-50 border-2 border-green-200 rounded-3xl">
+              <p className="text-lg font-bold text-green-700 mb-1">🎉 이 이야기 다 배웠어요!</p>
+              <p className="text-sm text-green-600 mb-3">정말 잘 가르쳐줬어요. 다음 이야기로 가볼까요?</p>
+              <button
+                onClick={advance}
+                disabled={advancing}
+                className="px-6 py-3 text-base font-bold bg-green-500 text-white rounded-full hover:bg-green-600 transition disabled:opacity-50"
+              >
+                {advancing ? "넘어가는 중..." : `${pendingNextStep.order}단계로 가기 →`}
+              </button>
+            </div>
+          </div>
+        )}
         {allStepsCompleted && (
-          <div className="flex justify-center py-4">
+          <div className="flex flex-col items-center gap-3 py-4">
             <div className="px-6 py-3 bg-green-50 border-2 border-green-200 rounded-full text-base font-bold text-green-700">
               🎉 오늘 가르치기 대성공! 정말 멋진 선생님이에요 🏆
             </div>
+            <button onClick={() => router.push("/student")} className="text-sm font-bold text-sky-600 hover:underline">
+              내 수업으로 돌아가기 →
+            </button>
           </div>
         )}
         {loading && (
