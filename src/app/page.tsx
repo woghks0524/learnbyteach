@@ -15,10 +15,11 @@ export default function Home() {
     }
   }, [status, session, router]);
 
-  if (status === "loading") {
+  // 로딩 중이거나, 이미 로그인돼서 곧 이동할 때는 랜딩 대신 로딩 화면만 (로그인/회원가입 버튼이 번쩍하는 것 방지)
+  if (status === "loading" || status === "authenticated") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">로딩 중...</p>
+      <div className="min-h-screen flex items-center justify-center bg-sky-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-sky-500" />
       </div>
     );
   }

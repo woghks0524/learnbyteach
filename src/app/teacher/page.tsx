@@ -61,7 +61,13 @@ export default function TeacherDashboard() {
     }
   };
 
-  if (status !== "authenticated") return null;
+  if (status !== "authenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-sky-500" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
