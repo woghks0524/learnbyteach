@@ -47,9 +47,20 @@ export async function POST(
         })
       : null;
 
+    // 메시지마다 어느 단계 것인지(stepId) 붙인다 — 학생 화면의 단계 탭 분류용
+    const progresses = await prisma.stepProgress.findMany({
+      where: { instanceId: instance.id },
+      select: { id: true, stepId: true },
+    });
+    const pmap = new Map(progresses.map((p) => [p.id, p.stepId]));
+    const messages = instance.messages.map((m) => ({
+      ...m,
+      stepId: m.stepProgressId ? pmap.get(m.stepProgressId) ?? null : null,
+    }));
+
     return NextResponse.json({
       instanceId: instance.id,
-      messages: instance.messages,
+      messages,
       steps,
       currentStep,
       stepProgress,

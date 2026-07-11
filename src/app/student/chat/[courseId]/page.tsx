@@ -8,6 +8,7 @@ interface Message {
   content: string;
   createdAt?: string;
   kind?: "normal" | "transition";
+  stepId?: string | null;
 }
 
 interface CourseInfo {
@@ -36,6 +37,7 @@ export default function ChatPage() {
   const [courseInfo, setCourseInfo] = useState<CourseInfo | null>(null);
   const [steps, setSteps] = useState<LessonStep[]>([]);
   const [currentStep, setCurrentStep] = useState<LessonStep | null>(null);
+  const [activeStepId, setActiveStepId] = useState<string | null>(null); // 지금 보고 있는 단계 탭
   const [allStepsCompleted, setAllStepsCompleted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +58,10 @@ export default function ChatPage() {
         setInstanceId(data.instanceId);
         setMessages(data.messages || []);
         if (data.steps) setSteps(data.steps);
-        if (data.currentStep) setCurrentStep(data.currentStep);
+        if (data.currentStep) {
+          setCurrentStep(data.currentStep);
+          setActiveStepId(data.currentStep.id); // 현재 단계 탭을 기본으로 열어둠
+        }
         if (courseRes.ok) {
           const course = await courseRes.json();
           setCourseInfo({ name: course.name, subject: course.subject, unit: course.unit });
@@ -79,8 +84,9 @@ export default function ChatPage() {
     if (!input.trim() || !instanceId || loading) return;
 
     const userMessage = input.trim();
+    const sendingStepId = currentStep?.id ?? null;
     setInput("");
-    setMessages((prev) => [...prev, { role: "student", content: userMessage }]);
+    setMessages((prev) => [...prev, { role: "student", content: userMessage, stepId: sendingStepId }]);
     setLoading(true);
 
     try {
@@ -96,13 +102,16 @@ export default function ChatPage() {
 
       const data = await res.json();
       setMessages((prev) => {
-        const next = [...prev, { role: "ai", content: data.message }];
-        if (data.transitionMessage) {
-          next.push({ role: "ai", content: data.transitionMessage, kind: "transition" });
+        const next = [...prev, { role: "ai", content: data.message, stepId: sendingStepId }];
+        if (data.transitionMessage && data.newStep) {
+          next.push({ role: "ai", content: data.transitionMessage, kind: "transition", stepId: data.newStep.id });
         }
         return next;
       });
-      if (data.newStep) setCurrentStep(data.newStep);
+      if (data.newStep) {
+        setCurrentStep(data.newStep);
+        setActiveStepId(data.newStep.id); // 새 단계로 자동 이동
+      }
       if (data.allStepsCompleted) setAllStepsCompleted(true);
     } catch {
       setMessages((prev) => [
@@ -141,6 +150,13 @@ export default function ChatPage() {
     );
   }
 
+  const hasSteps = steps.length > 0;
+  const firstStepId = steps[0]?.id ?? null;
+  const stepOf = (m: Message) => m.stepId ?? firstStepId;
+  const activeStep = steps.find((s) => s.id === activeStepId) ?? currentStep;
+  const isViewingCurrent = !hasSteps || (currentStep != null && activeStepId === currentStep.id);
+  const visibleMessages = hasSteps ? messages.filter((m) => stepOf(m) === activeStepId) : messages;
+
   return (
     <div className="flex flex-col h-screen max-w-2xl mx-auto bg-sky-50">
       <div className="p-4 border-b border-sky-100 bg-white rounded-b-2xl shadow-sm">
@@ -158,22 +174,59 @@ export default function ChatPage() {
               {courseInfo ? `${courseInfo.subject} · ${courseInfo.unit}` : "배운 걸 설명해주면 AI 친구가 질문하며 배워요!"}
             </p>
           </div>
-          {currentStep && steps.length > 0 && (
-            <div className="text-right">
-              <div className="flex items-center gap-2 justify-end">
-                <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-10 h-10 rounded-full object-cover bg-sky-50 ring-2 ring-sky-200" />
-                <span className="text-base font-bold text-gray-700">{currentStep.aiName}</span>
-              </div>
-              <p className="text-sm text-sky-600 font-medium mt-1">
-                {"⭐".repeat(currentStep.order)}{"☆".repeat(Math.max(0, steps.length - currentStep.order))} {currentStep.title}
-              </p>
-            </div>
-          )}
         </div>
+
+        {/* 단계 탭 — 지난 단계로 돌아가 볼 수 있어요 */}
+        {hasSteps && currentStep && (
+          <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+            {steps.map((s) => {
+              const completed = s.order < currentStep.order;
+              const locked = s.order > currentStep.order;
+              const active = s.id === activeStepId;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => !locked && setActiveStepId(s.id)}
+                  disabled={locked}
+                  title={s.title}
+                  className={`shrink-0 flex items-center gap-1.5 pl-1.5 pr-3 py-1 rounded-full border-2 transition ${
+                    active
+                      ? "border-sky-400 bg-sky-50"
+                      : locked
+                      ? "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
+                      : "border-transparent bg-white hover:border-sky-200"
+                  }`}
+                >
+                  <img src={`/avatars/${s.aiAvatar}.png`} alt="" className={`w-7 h-7 rounded-full object-cover ${locked ? "grayscale" : ""}`} />
+                  <span className="text-sm font-bold text-gray-700">{s.order}단계</span>
+                  {completed && <span className="text-green-500 text-sm">✓</span>}
+                  {locked && <span className="text-xs">🔒</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {hasSteps && activeStep && (
+          <p className="text-sm text-sky-600 font-medium mt-2 truncate">
+            {activeStep.aiName}와 · {activeStep.title}
+          </p>
+        )}
       </div>
 
+      {!isViewingCurrent && (
+        <div className="mx-4 mt-3 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 flex items-center justify-between gap-2">
+          <span>👀 지난 이야기를 보고 있어요.</span>
+          <button
+            onClick={() => currentStep && setActiveStepId(currentStep.id)}
+            className="shrink-0 font-bold text-amber-800 underline"
+          >
+            지금 이야기로 →
+          </button>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, i) => {
+        {visibleMessages.map((msg, i) => {
           if (msg.kind === "transition") {
             return (
               <div key={i} className="flex flex-col items-center gap-1.5 py-2">
@@ -184,10 +237,10 @@ export default function ChatPage() {
                 </div>
                 <div className="max-w-[80%] px-5 py-3 rounded-3xl bg-sky-100 border border-sky-200 text-gray-800">
                   <p className="text-sm text-sky-600 font-medium mb-1 inline-flex items-center gap-1.5">
-                    {currentStep ? (
+                    {activeStep ? (
                       <>
-                        <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
-                        {currentStep.aiName}
+                        <img src={`/avatars/${activeStep.aiAvatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
+                        {activeStep.aiName}
                       </>
                     ) : "AI 친구"}
                   </p>
@@ -205,10 +258,10 @@ export default function ChatPage() {
               }`}>
                 {msg.role === "ai" && (
                   <p className="text-sm text-gray-400 font-medium mb-1 inline-flex items-center gap-1.5">
-                    {currentStep ? (
+                    {activeStep ? (
                       <>
-                        <img src={`/avatars/${currentStep.aiAvatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
-                        {currentStep.aiName}
+                        <img src={`/avatars/${activeStep.aiAvatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
+                        {activeStep.aiName}
                       </>
                     ) : "AI 친구"}
                   </p>
@@ -240,25 +293,36 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="p-4 border-t border-sky-100 bg-white rounded-t-2xl">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="AI 친구에게 설명해 주세요 ✏️"
-            className="flex-1 px-5 py-3 text-base border-2 border-sky-200 rounded-full focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
-            disabled={loading}
-          />
+      {isViewingCurrent ? (
+        <form onSubmit={sendMessage} className="p-4 border-t border-sky-100 bg-white rounded-t-2xl">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="AI 친구에게 설명해 주세요 ✏️"
+              className="flex-1 px-5 py-3 text-base border-2 border-sky-200 rounded-full focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+              disabled={loading}
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="px-6 py-3 text-base font-bold bg-sky-500 text-white rounded-full hover:bg-sky-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              보내기
+            </button>
+          </div>
+        </form>
+      ) : (
+        <div className="p-4 border-t border-sky-100 bg-white rounded-t-2xl text-center">
           <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="px-6 py-3 text-base font-bold bg-sky-500 text-white rounded-full hover:bg-sky-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => currentStep && setActiveStepId(currentStep.id)}
+            className="px-6 py-3 text-base font-bold bg-sky-500 text-white rounded-full hover:bg-sky-600 transition"
           >
-            보내기
+            지금 이야기로 돌아가기 →
           </button>
         </div>
-      </form>
+      )}
     </div>
   );
 }
