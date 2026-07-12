@@ -9,6 +9,11 @@ export function toEmail(username: string): string {
   return trimmed.includes("@") ? trimmed : `${trimmed}@${EMAIL_DOMAIN}`;
 }
 
+// AI 학생 얼굴(아바타)은 성격에서 자동 결정 — 한 수업에 한 명, 이미지 하나로 일관되게.
+export function avatarForPersonality(personality: string): string {
+  return ({ passive: "shy", curious: "curious", challenging: "challenger" } as Record<string, string>)[personality] || "default";
+}
+
 // 채팅 = "AI 학생 연기"가 이 앱의 본질이라 4o 유지 (오개념 저항·캐릭터 유지 등 연기력이 핵심).
 // 비용을 줄여야 하면 COST_ANALYSIS.md §4의 하이브리드(채팅만 gpt-4o-mini)로 전환.
 export const CHAT_MODEL = "gpt-4o";

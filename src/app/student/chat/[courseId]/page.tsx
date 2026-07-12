@@ -41,6 +41,7 @@ export default function ChatPage() {
   const [allStepsCompleted, setAllStepsCompleted] = useState(false);
   const [pendingNextStep, setPendingNextStep] = useState<{ id: string; order: number; title: string } | null>(null); // 완료돼서 넘어갈 수 있는 다음 단계
   const [advancing, setAdvancing] = useState(false);
+  const [friend, setFriend] = useState<{ name: string; avatar: string }>({ name: "AI 친구", avatar: "default" }); // 수업 전체 한 명
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function ChatPage() {
         }
         if (data.pendingNextStep) setPendingNextStep(data.pendingNextStep);
         if (data.allStepsCompleted) setAllStepsCompleted(true);
+        if (data.friend) setFriend(data.friend);
         if (courseRes.ok) {
           const course = await courseRes.json();
           setCourseInfo({ name: course.name, subject: course.subject, unit: course.unit });
@@ -220,7 +222,7 @@ export default function ChatPage() {
                       : "border-transparent bg-white hover:border-sky-200"
                   }`}
                 >
-                  <img src={`/avatars/${s.aiAvatar}.png`} alt="" className={`w-7 h-7 rounded-full object-cover ${locked ? "grayscale" : ""}`} />
+                  <img src={`/avatars/${friend.avatar}.png`} alt="" className={`w-7 h-7 rounded-full object-cover ${locked ? "grayscale" : ""}`} />
                   <span className="text-sm font-bold text-gray-700">{s.order}단계</span>
                   {completed && <span className="text-green-500 text-sm">✓</span>}
                   {locked && <span className="text-xs">🔒</span>}
@@ -231,7 +233,7 @@ export default function ChatPage() {
         )}
         {hasSteps && activeStep && (
           <p className="text-sm text-sky-600 font-medium mt-2 truncate">
-            {activeStep.aiName}와 · {activeStep.title}
+            {friend.name}와 · {activeStep.title}
           </p>
         )}
       </div>
@@ -260,12 +262,8 @@ export default function ChatPage() {
                 </div>
                 <div className="max-w-[80%] px-5 py-3 rounded-3xl bg-sky-100 border border-sky-200 text-gray-800">
                   <p className="text-sm text-sky-600 font-medium mb-1 inline-flex items-center gap-1.5">
-                    {activeStep ? (
-                      <>
-                        <img src={`/avatars/${activeStep.aiAvatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
-                        {activeStep.aiName}
-                      </>
-                    ) : "AI 친구"}
+                    <img src={`/avatars/${friend.avatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
+                    {friend.name}
                   </p>
                   <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 </div>
@@ -281,12 +279,8 @@ export default function ChatPage() {
               }`}>
                 {msg.role === "ai" && (
                   <p className="text-sm text-gray-400 font-medium mb-1 inline-flex items-center gap-1.5">
-                    {activeStep ? (
-                      <>
-                        <img src={`/avatars/${activeStep.aiAvatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
-                        {activeStep.aiName}
-                      </>
-                    ) : "AI 친구"}
+                    <img src={`/avatars/${friend.avatar}.png`} alt="" className="w-6 h-6 rounded-full object-cover" />
+                    {friend.name}
                   </p>
                 )}
                 <p className="text-base leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -323,7 +317,7 @@ export default function ChatPage() {
         {loading && (
           <div className="flex justify-start">
             <div className="bg-white border border-sky-100 px-5 py-3 rounded-3xl rounded-bl-lg shadow-sm">
-              <p className="text-sm text-gray-400 font-medium mb-1">{currentStep?.aiName || "AI 친구"}</p>
+              <p className="text-sm text-gray-400 font-medium mb-1">{friend.name}</p>
               <div className="flex gap-1.5">
                 <span className="w-2.5 h-2.5 bg-sky-300 rounded-full animate-bounce"></span>
                 <span className="w-2.5 h-2.5 bg-sky-300 rounded-full animate-bounce [animation-delay:0.1s]"></span>

@@ -1329,6 +1329,7 @@ export const CourseScalarFieldEnum = {
   unit: 'unit',
   gradeLevel: 'gradeLevel',
   description: 'description',
+  aiName: 'aiName',
   comprehensionLevel: 'comprehensionLevel',
   personality: 'personality',
   knownTopics: 'knownTopics',

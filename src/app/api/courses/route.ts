@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       unit: body.unit,
       gradeLevel: body.gradeLevel,
       description: body.description || null,
+      aiName: (body.aiName || "").trim() || "AI 친구",
       comprehensionLevel: body.comprehensionLevel || "medium",
       personality: body.personality || "curious",
       knownTopics: JSON.stringify(body.knownTopics || []),

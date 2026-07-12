@@ -32,6 +32,7 @@ export default function NewCoursePage() {
     unit: "",
     gradeLevel: "",
     description: "",
+    aiName: "AI 친구",
     comprehensionLevel: "medium",
     personality: "curious",
     knownTopics: "",
@@ -115,6 +116,7 @@ export default function NewCoursePage() {
       const d = await res.json();
       setForm((f) => ({
         ...f,
+        aiName: d.aiName || f.aiName,
         comprehensionLevel: d.comprehensionLevel || f.comprehensionLevel,
         personality: d.personality || f.personality,
         knownTopics: (d.knownTopics || []).join(", "),
@@ -478,6 +480,18 @@ export default function NewCoursePage() {
 
         <div className="space-y-4">
           <h3 className="font-semibold text-gray-800 border-b pb-2">AI 학생 설정</h3>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">AI 학생 이름</label>
+            <input
+              type="text"
+              value={form.aiName}
+              onChange={(e) => update("aiName", e.target.value)}
+              maxLength={20}
+              placeholder="예: 민준"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">수업 전체에 걸쳐 학생이 가르칠 한 명의 AI 친구예요. 얼굴은 성격에 따라 자동으로 정해져요.</p>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">이해력 수준</label>

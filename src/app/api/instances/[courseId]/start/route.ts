@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 import { buildSystemPrompt } from "@/lib/ai-prompt";
-import { CHAT_MODEL, parseJsonArray } from "@/lib/constants";
+import { CHAT_MODEL, parseJsonArray, avatarForPersonality } from "@/lib/constants";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -34,10 +34,11 @@ export async function POST(
 
   // 기존 세션이 있으면 단계 정보와 함께 반환
   if (instance && instance.messages.length > 0) {
-    const steps = await prisma.lessonStep.findMany({
-      where: { courseId },
-      orderBy: { order: "asc" },
-    });
+    const [steps, courseRow] = await Promise.all([
+      prisma.lessonStep.findMany({ where: { courseId }, orderBy: { order: "asc" } }),
+      prisma.course.findUnique({ where: { id: courseId }, select: { aiName: true, personality: true } }),
+    ]);
+    const friend = { name: courseRow?.aiName ?? "AI 친구", avatar: avatarForPersonality(courseRow?.personality ?? "curious") };
     const currentStep = steps.find((s) => s.id === instance!.currentStepId) ?? steps[0] ?? null;
 
     // 현재 단계의 진행 상태
@@ -75,6 +76,7 @@ export async function POST(
       stepProgress,
       pendingNextStep,
       allStepsCompleted,
+      friend,
     });
   }
 
@@ -132,14 +134,14 @@ export async function POST(
     unit: course.unit,
     gradeLevel: course.gradeLevel,
     comprehensionLevel: course.comprehensionLevel,
-    personality: firstStep?.aiPersonality ?? course.personality,
+    personality: course.personality,
     knownTopics: parseJsonArray(course.knownTopics),
     unknownTopics: parseJsonArray(course.unknownTopics),
     misconceptions: parseJsonArray(course.misconceptions),
     knowledgeContent: knowledgeContent || undefined,
     comprehensionState: {},
     stepFocus: firstStep?.aiFocus ?? undefined,
-    aiName: firstStep?.aiName ?? "AI 학생",
+    aiName: course.aiName,
     stepTitle: firstStep?.title ?? undefined,
   });
 
@@ -183,5 +185,6 @@ export async function POST(
     steps: course.steps,
     currentStep: firstStep,
     stepProgress,
+    friend: { name: course.aiName, avatar: avatarForPersonality(course.personality) },
   });
 }

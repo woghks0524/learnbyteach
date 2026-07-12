@@ -32,6 +32,7 @@ export type CourseMinAggregateOutputType = {
   unit: string | null
   gradeLevel: string | null
   description: string | null
+  aiName: string | null
   comprehensionLevel: string | null
   personality: string | null
   knownTopics: string | null
@@ -49,6 +50,7 @@ export type CourseMaxAggregateOutputType = {
   unit: string | null
   gradeLevel: string | null
   description: string | null
+  aiName: string | null
   comprehensionLevel: string | null
   personality: string | null
   knownTopics: string | null
@@ -66,6 +68,7 @@ export type CourseCountAggregateOutputType = {
   unit: number
   gradeLevel: number
   description: number
+  aiName: number
   comprehensionLevel: number
   personality: number
   knownTopics: number
@@ -85,6 +88,7 @@ export type CourseMinAggregateInputType = {
   unit?: true
   gradeLevel?: true
   description?: true
+  aiName?: true
   comprehensionLevel?: true
   personality?: true
   knownTopics?: true
@@ -102,6 +106,7 @@ export type CourseMaxAggregateInputType = {
   unit?: true
   gradeLevel?: true
   description?: true
+  aiName?: true
   comprehensionLevel?: true
   personality?: true
   knownTopics?: true
@@ -119,6 +124,7 @@ export type CourseCountAggregateInputType = {
   unit?: true
   gradeLevel?: true
   description?: true
+  aiName?: true
   comprehensionLevel?: true
   personality?: true
   knownTopics?: true
@@ -209,6 +215,7 @@ export type CourseGroupByOutputType = {
   unit: string
   gradeLevel: string
   description: string | null
+  aiName: string
   comprehensionLevel: string
   personality: string
   knownTopics: string
@@ -247,6 +254,7 @@ export type CourseWhereInput = {
   unit?: Prisma.StringFilter<"Course"> | string
   gradeLevel?: Prisma.StringFilter<"Course"> | string
   description?: Prisma.StringNullableFilter<"Course"> | string | null
+  aiName?: Prisma.StringFilter<"Course"> | string
   comprehensionLevel?: Prisma.StringFilter<"Course"> | string
   personality?: Prisma.StringFilter<"Course"> | string
   knownTopics?: Prisma.StringFilter<"Course"> | string
@@ -269,6 +277,7 @@ export type CourseOrderByWithRelationInput = {
   unit?: Prisma.SortOrder
   gradeLevel?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  aiName?: Prisma.SortOrder
   comprehensionLevel?: Prisma.SortOrder
   personality?: Prisma.SortOrder
   knownTopics?: Prisma.SortOrder
@@ -294,6 +303,7 @@ export type CourseWhereUniqueInput = Prisma.AtLeast<{
   unit?: Prisma.StringFilter<"Course"> | string
   gradeLevel?: Prisma.StringFilter<"Course"> | string
   description?: Prisma.StringNullableFilter<"Course"> | string | null
+  aiName?: Prisma.StringFilter<"Course"> | string
   comprehensionLevel?: Prisma.StringFilter<"Course"> | string
   personality?: Prisma.StringFilter<"Course"> | string
   knownTopics?: Prisma.StringFilter<"Course"> | string
@@ -316,6 +326,7 @@ export type CourseOrderByWithAggregationInput = {
   unit?: Prisma.SortOrder
   gradeLevel?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  aiName?: Prisma.SortOrder
   comprehensionLevel?: Prisma.SortOrder
   personality?: Prisma.SortOrder
   knownTopics?: Prisma.SortOrder
@@ -339,6 +350,7 @@ export type CourseScalarWhereWithAggregatesInput = {
   unit?: Prisma.StringWithAggregatesFilter<"Course"> | string
   gradeLevel?: Prisma.StringWithAggregatesFilter<"Course"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Course"> | string | null
+  aiName?: Prisma.StringWithAggregatesFilter<"Course"> | string
   comprehensionLevel?: Prisma.StringWithAggregatesFilter<"Course"> | string
   personality?: Prisma.StringWithAggregatesFilter<"Course"> | string
   knownTopics?: Prisma.StringWithAggregatesFilter<"Course"> | string
@@ -355,6 +367,7 @@ export type CourseCreateInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -377,6 +390,7 @@ export type CourseUncheckedCreateInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -397,6 +411,7 @@ export type CourseUpdateInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -419,6 +434,7 @@ export type CourseUncheckedUpdateInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -440,6 +456,7 @@ export type CourseCreateManyInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -456,6 +473,7 @@ export type CourseUpdateManyMutationInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -473,6 +491,7 @@ export type CourseUncheckedUpdateManyInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -505,6 +524,7 @@ export type CourseCountOrderByAggregateInput = {
   unit?: Prisma.SortOrder
   gradeLevel?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  aiName?: Prisma.SortOrder
   comprehensionLevel?: Prisma.SortOrder
   personality?: Prisma.SortOrder
   knownTopics?: Prisma.SortOrder
@@ -522,6 +542,7 @@ export type CourseMaxOrderByAggregateInput = {
   unit?: Prisma.SortOrder
   gradeLevel?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  aiName?: Prisma.SortOrder
   comprehensionLevel?: Prisma.SortOrder
   personality?: Prisma.SortOrder
   knownTopics?: Prisma.SortOrder
@@ -539,6 +560,7 @@ export type CourseMinOrderByAggregateInput = {
   unit?: Prisma.SortOrder
   gradeLevel?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  aiName?: Prisma.SortOrder
   comprehensionLevel?: Prisma.SortOrder
   personality?: Prisma.SortOrder
   knownTopics?: Prisma.SortOrder
@@ -653,6 +675,7 @@ export type CourseCreateWithoutTeacherInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -673,6 +696,7 @@ export type CourseUncheckedCreateWithoutTeacherInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -723,6 +747,7 @@ export type CourseScalarWhereInput = {
   unit?: Prisma.StringFilter<"Course"> | string
   gradeLevel?: Prisma.StringFilter<"Course"> | string
   description?: Prisma.StringNullableFilter<"Course"> | string | null
+  aiName?: Prisma.StringFilter<"Course"> | string
   comprehensionLevel?: Prisma.StringFilter<"Course"> | string
   personality?: Prisma.StringFilter<"Course"> | string
   knownTopics?: Prisma.StringFilter<"Course"> | string
@@ -739,6 +764,7 @@ export type CourseCreateWithoutKnowledgeFilesInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -760,6 +786,7 @@ export type CourseUncheckedCreateWithoutKnowledgeFilesInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -795,6 +822,7 @@ export type CourseUpdateWithoutKnowledgeFilesInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -816,6 +844,7 @@ export type CourseUncheckedUpdateWithoutKnowledgeFilesInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -835,6 +864,7 @@ export type CourseCreateWithoutStepsInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -856,6 +886,7 @@ export type CourseUncheckedCreateWithoutStepsInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -891,6 +922,7 @@ export type CourseUpdateWithoutStepsInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -912,6 +944,7 @@ export type CourseUncheckedUpdateWithoutStepsInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -931,6 +964,7 @@ export type CourseCreateWithoutEnrollmentsInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -952,6 +986,7 @@ export type CourseUncheckedCreateWithoutEnrollmentsInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -987,6 +1022,7 @@ export type CourseUpdateWithoutEnrollmentsInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1008,6 +1044,7 @@ export type CourseUncheckedUpdateWithoutEnrollmentsInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1027,6 +1064,7 @@ export type CourseCreateWithoutInstancesInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -1048,6 +1086,7 @@ export type CourseUncheckedCreateWithoutInstancesInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -1083,6 +1122,7 @@ export type CourseUpdateWithoutInstancesInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1104,6 +1144,7 @@ export type CourseUncheckedUpdateWithoutInstancesInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1123,6 +1164,7 @@ export type CourseCreateManyTeacherInput = {
   unit: string
   gradeLevel: string
   description?: string | null
+  aiName?: string
   comprehensionLevel?: string
   personality?: string
   knownTopics?: string
@@ -1139,6 +1181,7 @@ export type CourseUpdateWithoutTeacherInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1159,6 +1202,7 @@ export type CourseUncheckedUpdateWithoutTeacherInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1179,6 +1223,7 @@ export type CourseUncheckedUpdateManyWithoutTeacherInput = {
   unit?: Prisma.StringFieldUpdateOperationsInput | string
   gradeLevel?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiName?: Prisma.StringFieldUpdateOperationsInput | string
   comprehensionLevel?: Prisma.StringFieldUpdateOperationsInput | string
   personality?: Prisma.StringFieldUpdateOperationsInput | string
   knownTopics?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1254,6 +1299,7 @@ export type CourseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   unit?: boolean
   gradeLevel?: boolean
   description?: boolean
+  aiName?: boolean
   comprehensionLevel?: boolean
   personality?: boolean
   knownTopics?: boolean
@@ -1277,6 +1323,7 @@ export type CourseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   unit?: boolean
   gradeLevel?: boolean
   description?: boolean
+  aiName?: boolean
   comprehensionLevel?: boolean
   personality?: boolean
   knownTopics?: boolean
@@ -1295,6 +1342,7 @@ export type CourseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   unit?: boolean
   gradeLevel?: boolean
   description?: boolean
+  aiName?: boolean
   comprehensionLevel?: boolean
   personality?: boolean
   knownTopics?: boolean
@@ -1313,6 +1361,7 @@ export type CourseSelectScalar = {
   unit?: boolean
   gradeLevel?: boolean
   description?: boolean
+  aiName?: boolean
   comprehensionLevel?: boolean
   personality?: boolean
   knownTopics?: boolean
@@ -1322,7 +1371,7 @@ export type CourseSelectScalar = {
   updatedAt?: boolean
 }
 
-export type CourseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teacherId" | "name" | "subject" | "unit" | "gradeLevel" | "description" | "comprehensionLevel" | "personality" | "knownTopics" | "unknownTopics" | "misconceptions" | "createdAt" | "updatedAt", ExtArgs["result"]["course"]>
+export type CourseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "teacherId" | "name" | "subject" | "unit" | "gradeLevel" | "description" | "aiName" | "comprehensionLevel" | "personality" | "knownTopics" | "unknownTopics" | "misconceptions" | "createdAt" | "updatedAt", ExtArgs["result"]["course"]>
 export type CourseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   teacher?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   enrollments?: boolean | Prisma.Course$enrollmentsArgs<ExtArgs>
@@ -1355,6 +1404,7 @@ export type $CoursePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     unit: string
     gradeLevel: string
     description: string | null
+    aiName: string
     comprehensionLevel: string
     personality: string
     knownTopics: string
@@ -1797,6 +1847,7 @@ export interface CourseFieldRefs {
   readonly unit: Prisma.FieldRef<"Course", 'String'>
   readonly gradeLevel: Prisma.FieldRef<"Course", 'String'>
   readonly description: Prisma.FieldRef<"Course", 'String'>
+  readonly aiName: Prisma.FieldRef<"Course", 'String'>
   readonly comprehensionLevel: Prisma.FieldRef<"Course", 'String'>
   readonly personality: Prisma.FieldRef<"Course", 'String'>
   readonly knownTopics: Prisma.FieldRef<"Course", 'String'>

@@ -129,6 +129,7 @@ export async function PATCH(
   if (typeof b.subject === "string" && b.subject.trim()) data.subject = b.subject.trim();
   if (typeof b.unit === "string" && b.unit.trim()) data.unit = b.unit.trim();
   if (typeof b.gradeLevel === "string" && b.gradeLevel.trim()) data.gradeLevel = b.gradeLevel.trim();
+  if (typeof b.aiName === "string" && b.aiName.trim()) data.aiName = b.aiName.trim();
   if (["low", "medium", "high"].includes(b.comprehensionLevel)) data.comprehensionLevel = b.comprehensionLevel;
   if (["passive", "curious", "challenging"].includes(b.personality)) data.personality = b.personality;
   if (Array.isArray(b.knownTopics)) data.knownTopics = JSON.stringify(b.knownTopics);

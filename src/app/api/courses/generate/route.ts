@@ -67,12 +67,15 @@ export async function POST(req: NextRequest) {
           .filter((s: { title: string }) => s.title)
       : [];
 
+    const aiName = typeof parsed.aiName === "string" && parsed.aiName.trim() ? parsed.aiName.trim().slice(0, 20) : "AI 친구";
+
     return NextResponse.json({
       misconceptions: arr(parsed.misconceptions),
       knownTopics: arr(parsed.knownTopics),
       unknownTopics: arr(parsed.unknownTopics),
       comprehensionLevel: level,
       personality,
+      aiName,
       steps,
     });
   } catch {

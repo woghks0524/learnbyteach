@@ -59,14 +59,14 @@ export async function POST(req: NextRequest) {
     unit: course.unit,
     gradeLevel: course.gradeLevel,
     comprehensionLevel: course.comprehensionLevel,
-    personality: currentStep?.aiPersonality ?? course.personality,
+    personality: course.personality, // 수업 전체 한 명 — 단계별로 안 바뀜
     knownTopics: parseJsonArray(course.knownTopics),
     unknownTopics: parseJsonArray(course.unknownTopics),
     misconceptions: parseJsonArray(course.misconceptions),
     knowledgeContent: knowledgeContent || undefined,
     comprehensionState: parseJsonObject(instance.comprehensionState),
     stepFocus: currentStep?.aiFocus ?? undefined,
-    aiName: currentStep?.aiName ?? "AI 학생",
+    aiName: course.aiName, // 한 명의 이름 고정
     stepTitle: currentStep?.title ?? undefined,
     completionCriteria: currentStep?.completionCriteria ?? undefined,
   });

@@ -75,7 +75,7 @@ export default function CourseDetailPage() {
   const [activeTab, setActiveTab] = useState<"students" | "conversations" | "steps" | "settings">("students");
 
   // 수업 설정 편집
-  const [settings, setSettings] = useState({ name: "", description: "", subject: "", unit: "", gradeLevel: "", comprehensionLevel: "medium", personality: "curious", knownTopics: "", unknownTopics: "", misconceptions: "" });
+  const [settings, setSettings] = useState({ name: "", description: "", subject: "", unit: "", gradeLevel: "", aiName: "AI 친구", comprehensionLevel: "medium", personality: "curious", knownTopics: "", unknownTopics: "", misconceptions: "" });
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -114,6 +114,7 @@ export default function CourseDetailPage() {
           subject: data.subject ?? "",
           unit: data.unit ?? "",
           gradeLevel: data.gradeLevel ?? "",
+          aiName: data.aiName ?? "AI 친구",
           comprehensionLevel: data.comprehensionLevel ?? "medium",
           personality: data.personality ?? "curious",
           knownTopics: parseArr(data.knownTopics ?? "[]").join(", "),
@@ -137,6 +138,7 @@ export default function CourseDetailPage() {
           subject: settings.subject,
           unit: settings.unit,
           gradeLevel: settings.gradeLevel,
+          aiName: settings.aiName,
           comprehensionLevel: settings.comprehensionLevel,
           personality: settings.personality,
           knownTopics: settings.knownTopics.split(",").map((s) => s.trim()).filter(Boolean),
@@ -644,6 +646,11 @@ export default function CourseDetailPage() {
 
           <div>
             <h3 className="font-semibold text-gray-800 border-b pb-2 mb-3">AI 학생 설정</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">AI 학생 이름</label>
+              <input type="text" value={settings.aiName} maxLength={20} onChange={(e) => setSettings({ ...settings, aiName: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <p className="text-xs text-gray-400 mt-1">수업 전체에 걸쳐 학생이 가르칠 한 명의 AI 친구예요. 얼굴은 성격에 따라 자동으로 정해져요.</p>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">이해력 수준</label>
