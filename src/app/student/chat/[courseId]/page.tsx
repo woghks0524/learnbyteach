@@ -3,6 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+// 이름 뒤 "랑/이랑" 조사 — 받침 있으면 "이랑", 없으면 "랑"
+function withRang(name: string): string {
+  const last = name.trim().slice(-1);
+  const code = last.charCodeAt(0);
+  const hasBatchim = code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 !== 0;
+  return `${name}${hasBatchim ? "이랑" : "랑"}`;
+}
+
 interface Message {
   role: string;
   content: string;
@@ -233,7 +241,7 @@ export default function ChatPage() {
         )}
         {hasSteps && activeStep && (
           <p className="text-sm text-sky-600 font-medium mt-2 truncate">
-            {friend.name}와 · {activeStep.title}
+            {withRang(friend.name)} · {activeStep.title}
           </p>
         )}
       </div>
