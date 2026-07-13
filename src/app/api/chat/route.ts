@@ -149,10 +149,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 이해도 상태 업데이트 (매 5번 대화마다 = 10개 메시지)
+  // 이해도 상태 업데이트 (매 5번 대화마다 = 10개 메시지, 그리고 단계 완료 시)
+  // 5턴 주기만 돌면 대화 '중간'에서 스냅샷이 찍혀 마지막 정정이 반영 안 됨 → 단계가 완료되는 순간에도
+  // 한 번 더 돌려 '최종 상태'가 대시보드에 남게 한다(완료 신호와 이해도가 어긋나지 않도록).
   // 학생 응답을 막지 않도록 응답 전송 후(after)에 실행 — 다음 채팅부터 갱신된 상태가 반영된다
   const totalMessages = instance.messages.length + 2;
-  if (totalMessages % 5 === 0) {
+  if (totalMessages % 5 === 0 || stepJustCompleted) {
     after(async () => {
       try {
         const allMessages = [
