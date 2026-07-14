@@ -135,6 +135,7 @@ export default function NewCoursePage() {
   const updateStep = (i: number, field: "title" | "aiFocus" | "completionCriteria", value: string) =>
     setGenSteps((prev) => prev.map((st, idx) => (idx === i ? { ...st, [field]: value } : st)));
   const removeStep = (i: number) => setGenSteps((prev) => prev.filter((_, idx) => idx !== i));
+  const addStep = () => setGenSteps((prev) => [...prev, { title: "", aiFocus: "", completionCriteria: "" }]);
 
   // 과목 입력하면 관련 파일 필터링
   const filteredFiles = form.subject
@@ -281,9 +282,9 @@ export default function NewCoursePage() {
           <div className="flex items-start gap-3">
             <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${stepDone2 ? "bg-green-500 text-white" : "bg-blue-600 text-white"}`}>{stepDone2 ? "✓" : "2"}</span>
             <div>
-              <h2 className="font-semibold text-gray-800">AI로 수업 자동 구성</h2>
+              <h2 className="font-semibold text-gray-800">학습 단계 만들기</h2>
               <p className="text-sm text-gray-500 mt-0.5">
-                버튼을 누르면 이 단원의 <b>흔한 오개념·선수학습·학습 단계(완료 기준)</b>를 AI가 초안으로 채워줘요.
+                AI로 <b>흔한 오개념·선수학습·학습 단계(완료 기준)</b>를 초안으로 받거나, 아래에서 <b>직접 추가·수정·삭제</b>할 수 있어요.
                 {selectedFileIds.length > 0 ? " 선택한 지식파일도 함께 반영해요." : ""}
               </p>
             </div>
@@ -298,10 +299,15 @@ export default function NewCoursePage() {
           </button>
           {genMsg && <p className="text-sm text-indigo-700">{genMsg}</p>}
 
-          {/* 생성된 학습 단계 미리보기·편집 */}
-          {genSteps.length > 0 && (
-            <div className="space-y-2 pt-1">
-              <h3 className="text-sm font-semibold text-gray-800">학습 단계 <span className="font-normal text-gray-400">(AI 초안 — 수정 가능, 저장 시 함께 생성돼요)</span></h3>
+          {/* 학습 단계 — AI 초안이든 직접 추가든 여기서 편집 */}
+          <div className="space-y-2 pt-1">
+            <h3 className="text-sm font-semibold text-gray-800">
+              학습 단계 <span className="font-normal text-gray-400">({genSteps.length}개 — 수정·삭제·추가 가능, 저장 시 함께 생성돼요)</span>
+            </h3>
+            {genSteps.length === 0 && (
+              <p className="text-sm text-gray-400">아직 단계가 없어요. 위에서 AI로 자동 구성하거나, 아래 <b>+ 단계 추가</b>로 직접 만들 수 있어요.</p>
+            )}
+            {genSteps.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {genSteps.map((st, i) => (
                 <div key={i} className="rounded-lg border border-gray-200 p-3 space-y-2">
@@ -331,8 +337,15 @@ export default function NewCoursePage() {
                 </div>
               ))}
               </div>
-            </div>
-          )}
+            )}
+            <button
+              type="button"
+              onClick={addStep}
+              className="w-full py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-indigo-400 hover:text-indigo-600 transition text-sm font-medium"
+            >
+              + 단계 추가
+            </button>
+          </div>
         </section>
 
         {/* STEP 3 — 수업 정보 확인 */}

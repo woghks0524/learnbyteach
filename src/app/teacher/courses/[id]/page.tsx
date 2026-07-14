@@ -49,14 +49,6 @@ interface CourseDetail {
 
 const parseArr = (s: string): string[] => { try { const v = JSON.parse(s); return Array.isArray(v) ? v : []; } catch { return []; } };
 
-const AVATAR_OPTIONS = [
-  { key: "default", label: "기본", emoji: "🧑‍🎓" },
-  { key: "curious", label: "호기심쟁이", emoji: "🤓" },
-  { key: "shy", label: "수줍음", emoji: "😶" },
-  { key: "challenger", label: "도전자", emoji: "😤" },
-  { key: "sleepy", label: "졸린 학생", emoji: "😴" },
-];
-
 const BLANK_STEP: Omit<LessonStep, "id" | "order"> = {
   title: "",
   description: "",
@@ -394,27 +386,23 @@ export default function CourseDetailPage() {
               </div>
             )}
             {steps.map((step) => {
-              const avatar = AVATAR_OPTIONS.find((a) => a.key === step.aiAvatar);
               return (
                 <div
                   key={step.id}
                   className={`bg-white rounded-xl p-4 cursor-pointer border-2 transition ${editingStep?.id === step.id ? "border-blue-400" : "border-transparent hover:border-gray-200"}`}
                   onClick={() => { setEditingStep({ ...step }); setIsNewStep(false); }}
                 >
-                  <div className="flex items-center gap-3">
-                    <img src={`/avatars/${avatar?.key ?? "default"}.png`} alt="" className="w-10 h-10 rounded-full object-cover bg-gray-50 shrink-0" />
+                  <div className="flex items-start gap-3">
+                    <span className="shrink-0 mt-0.5 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">{step.order}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-mono">단계 {step.order}</span>
-                        <span className="font-medium truncate">{step.title}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-gray-400">{step.aiName}</span>
-                      </div>
+                      <span className="font-medium block truncate">{step.title}</span>
+                      {step.completionCriteria && (
+                        <span className="text-xs text-gray-400 line-clamp-2 mt-0.5">완료 기준: {step.completionCriteria}</span>
+                      )}
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteStep(step.id); }}
-                      className="text-gray-300 hover:text-red-400 px-1"
+                      className="text-gray-300 hover:text-red-400 px-1 shrink-0"
                     >
                       &times;
                     </button>
@@ -450,46 +438,9 @@ export default function CourseDetailPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">AI 아바타</label>
-                <div className="flex gap-2 flex-wrap">
-                  {AVATAR_OPTIONS.map((a) => (
-                    <button
-                      key={a.key}
-                      type="button"
-                      onClick={() => setEditingStep({ ...editingStep, aiAvatar: a.key })}
-                      className={`flex flex-col items-center p-2 rounded-lg border-2 transition ${editingStep.aiAvatar === a.key ? "border-blue-400 bg-blue-50" : "border-gray-200 hover:border-gray-300"}`}
-                    >
-                      <img src={`/avatars/${a.key}.png`} alt="" className="w-10 h-10 rounded-full object-cover bg-gray-50" />
-                      <span className="text-xs mt-0.5">{a.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">AI 이름</label>
-                <input
-                  type="text"
-                  value={editingStep.aiName}
-                  onChange={(e) => setEditingStep({ ...editingStep, aiName: e.target.value })}
-                  placeholder="예: 민준, 소연, AI 학생"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">AI 성격</label>
-                <select
-                  value={editingStep.aiPersonality}
-                  onChange={(e) => setEditingStep({ ...editingStep, aiPersonality: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="passive">수동적 — 주로 듣고 가끔 질문</option>
-                  <option value="curious">호기심 — 왜? 어떻게? 질문 많음</option>
-                  <option value="challenging">도전적 — 반박하고 논리 빈틈 찾음</option>
-                </select>
-              </div>
+              <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-2.5 leading-relaxed">
+                🧒 AI 학생(이름·성격·얼굴)은 수업 전체에 <b>한 명</b>이에요 — <b>설정 탭</b>에서 한 번만 정하면 모든 단계에 똑같이 적용돼요. 여기선 <b>단계별 학습 내용</b>만 정하면 돼요.
+              </p>
 
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
