@@ -38,6 +38,37 @@ ${extra}
 {"misconceptions": ["..."], "knownTopics": ["..."], "unknownTopics": ["..."], "comprehensionLevel": "medium", "personality": "curious", "aiName": "민준", "steps": [{"title": "...", "aiFocus": "...", "completionCriteria": "..."}]}`;
 }
 
+// 부분(차시) 단계 생성 — 이미 만든 수업에, 교사가 원하는 '이 부분'에 대한 학습 단계 1~3개만 만들어 이어붙일 때
+export function buildStepGenPrompt(input: {
+  grade: string;
+  subject: string;
+  unit: string;
+  focus: string; // 교사가 적은 범위 (예: "증발과 응결만", "3차시: 자석의 극")
+  answerKey?: string; // 이 수업의 정답지(지식파일)
+  existingTitles?: string[]; // 이미 있는 단계들 — 중복 피하려고
+}): string {
+  const ans = input.answerKey ? `\n[이 수업 정답지 — 이 범위 안에서만]\n${input.answerKey.slice(0, 8000)}\n` : "";
+  const existing = input.existingTitles?.length
+    ? `\n[이미 만들어진 단계들 — 겹치지 않게]\n${input.existingTitles.map((t) => `- ${t}`).join("\n")}\n`
+    : "";
+  return `너는 초등학교 교사의 수업 설계를 돕는 조교야. 학생이 "모르는 AI 학생"에게 개념을 가르치며 배우는 앱의 **학습 단계**를 만들어.
+
+[대상] ${input.grade} ${input.subject} · 단원 "${input.unit}"
+[교사가 원하는 이 부분] ${input.focus}
+${ans}${existing}
+
+교사가 콕 집은 위 "이 부분"에 대해서만, 딱 맞는 **학습 단계 1~3개**를 만들어. 단원 전체를 다루지 말고 이 부분에만 집중해.
+각 단계는:
+- "title": 짧은 단계 이름(예: "증발이 뭔지 알기")
+- "aiFocus": 이 단계에서 AI 학생이 집중할 주제 범위(한 문장)
+- "completionCriteria": 학생(가르치는 사람)이 **무엇을 자기 말로 정확히 설명하면** 이 단계가 끝나는지. 구체적인 핵심 요소로. (심판 AI가 이 기준으로 통과 판정)
+
+※ 모든 문장은 **초등학생도 아는 쉬운 말**로. "물질·원리·요소·특성·현상·작용" 같은 어른/교과서 단어는 쓰지 마(그 학년 교과서 핵심 용어는 예외). completionCriteria에도 어려운 말을 넣지 마 — AI 학생이 그대로 따라 쓰게 되니까.
+
+반드시 이 JSON만 반환(다른 텍스트 없이):
+{"steps": [{"title": "...", "aiFocus": "...", "completionCriteria": "..."}]}`;
+}
+
 interface AIProfileConfig {
   subject: string;
   unit: string;

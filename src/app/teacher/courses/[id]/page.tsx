@@ -94,6 +94,9 @@ export default function CourseDetailPage() {
   const [editingStep, setEditingStep] = useState<LessonStep | null>(null);
   const [isNewStep, setIsNewStep] = useState(false);
   const [stepSaving, setStepSaving] = useState(false);
+  const [genFocus, setGenFocus] = useState("");    // AI 부분 단계 생성 — 어떤 부분?
+  const [genLoading, setGenLoading] = useState(false);
+  const [genErr, setGenErr] = useState("");
 
   const loadCourse = useCallback(() => {
     fetch(`/api/courses/${id}`)
@@ -214,6 +217,39 @@ export default function CourseDetailPage() {
     await fetch(`/api/courses/${id}/steps/${stepId}`, { method: "DELETE" });
     loadSteps();
     if (editingStep?.id === stepId) setEditingStep(null);
+  };
+
+  // AI로 '이 부분'에 대한 단계 1~3개를 만들어 기존 단계 뒤에 이어붙인다
+  const generateSteps = async () => {
+    if (!genFocus.trim() || genLoading) return;
+    setGenLoading(true);
+    setGenErr("");
+    try {
+      const res = await fetch(`/api/courses/${id}/steps/generate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ focus: genFocus.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || !Array.isArray(data.steps)) {
+        setGenErr(data.error ?? "단계 생성에 실패했어요.");
+        return;
+      }
+      // 받은 단계들을 순서대로 생성(뒤에 이어붙음 — 서버가 order 자동 부여)
+      for (const s of data.steps) {
+        await fetch(`/api/courses/${id}/steps`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: s.title, aiFocus: s.aiFocus, completionCriteria: s.completionCriteria }),
+        });
+      }
+      setGenFocus("");
+      loadSteps();
+    } catch {
+      setGenErr("단계 생성에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setGenLoading(false);
+    }
   };
 
   if (loading || !course) {
@@ -420,6 +456,27 @@ export default function CourseDetailPage() {
             >
               + 단계 추가
             </button>
+
+            {/* AI로 '이 부분만' 단계 생성 — 단원 전체 말고 원하는 부분/차시만 */}
+            <div className="bg-indigo-50 rounded-xl p-3 space-y-2 mt-1">
+              <p className="text-xs font-semibold text-indigo-800">🪄 AI로 단계 만들기 <span className="font-normal text-indigo-400">(원하는 부분만)</span></p>
+              <p className="text-xs text-gray-500 leading-relaxed">단원 전체가 아니라, 지금 필요한 부분·차시만 적으면 그것에 맞는 단계를 만들어 뒤에 이어붙여요.</p>
+              <textarea
+                value={genFocus}
+                onChange={(e) => setGenFocus(e.target.value)}
+                placeholder="예: 증발과 응결만 / 3차시: 자석의 극끼리 밀고 당기기"
+                rows={2}
+                className="w-full px-2.5 py-1.5 border border-indigo-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+              <button
+                onClick={generateSteps}
+                disabled={genLoading || !genFocus.trim()}
+                className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+              >
+                {genLoading ? "AI가 만드는 중... (약 10초)" : "🪄 이 부분 단계 만들기"}
+              </button>
+              {genErr && <p className="text-xs text-red-500">{genErr}</p>}
+            </div>
           </div>
 
           {/* 단계 편집 패널 */}
