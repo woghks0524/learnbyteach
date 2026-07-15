@@ -83,6 +83,16 @@ export default function LoginPage() {
             </Link>
           </p>
         </form>
+
+        {/* 소개·사용법 바로가기 */}
+        <div className="mt-5 flex items-center justify-center gap-2 text-sm">
+          <Link href="/about" className="px-4 py-2 rounded-full bg-white/70 text-gray-600 font-medium hover:text-sky-600 hover:bg-white transition shadow-sm">
+            📖 서비스 소개
+          </Link>
+          <Link href="/guide" className="px-4 py-2 rounded-full bg-white/70 text-gray-600 font-medium hover:text-sky-600 hover:bg-white transition shadow-sm">
+            💡 사용법
+          </Link>
+        </div>
       </div>
     </div>
   );
