@@ -413,12 +413,25 @@ export default function CourseDetailPage() {
 
       {/* 수업 설계 탭 */}
       {activeTab === "steps" && (
+        <div>
+        {/* 안내 헤더 — 여기가 단계를 관리하는 곳임을 분명히 */}
+        <div className="flex items-center justify-between gap-3 bg-white rounded-xl p-4 mb-4">
+          <p className="text-sm text-gray-600">
+            수업의 <b className="text-gray-800">학습 단계</b>를 여기서 <b className="text-gray-800">추가·수정·삭제</b>해요. 단계를 누르면 오른쪽에서 고칠 수 있어요.
+          </p>
+          <button
+            onClick={() => { setEditingStep({ ...BLANK_STEP, id: "", order: steps.length + 1 }); setIsNewStep(true); }}
+            className="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition"
+          >
+            + 단계 추가
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 단계 목록 */}
           <div className="space-y-2">
             {steps.length === 0 && !editingStep && (
               <div className="bg-white rounded-xl p-6 text-center text-gray-500 text-sm">
-                아직 설계된 단계가 없어요.<br />단계를 추가해서 수업 흐름을 만들어보세요.
+                아직 만든 단계가 없어요.<br />위 <b>+ 단계 추가</b>로 직접 만들거나, 아래 <b>🪄 AI로 단계 만들기</b>를 써보세요.
               </div>
             )}
             {steps.map((step) => {
@@ -557,6 +570,7 @@ export default function CourseDetailPage() {
               단계를 클릭하면 수정할 수 있어요
             </div>
           )}
+        </div>
         </div>
       )}
 
