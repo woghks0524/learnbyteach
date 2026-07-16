@@ -35,7 +35,7 @@ function StepCard({ n, title, body, color }: { n: number; title: string; body: s
 
 export default function GuidePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-indigo-50 text-gray-800">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-rose-50 text-gray-800">
       <PublicNav active="guide" />
 
       <main className="max-w-3xl mx-auto px-4 py-10 sm:py-14">
@@ -52,10 +52,10 @@ export default function GuidePage() {
           </div>
           <div className="space-y-3">
             {teacherSteps.map((s) => (
-              <StepCard key={s.n} {...s} color="bg-sky-400" />
+              <StepCard key={s.n} {...s} color="bg-pink-400" />
             ))}
           </div>
-          <div className="mt-4 bg-sky-100/60 rounded-2xl p-4 text-sm text-sky-800 leading-relaxed">
+          <div className="mt-4 bg-pink-100/60 rounded-2xl p-4 text-sm text-pink-800 leading-relaxed">
             💡 <b>팁</b> — AI가 만든 단계가 단원 전체라 부담되면, 그냥 필요한 <b>차시(부분)만</b> "이 부분만 단계 만들기"로 뽑아 쓰세요. 하나씩 붙여 가며 운영할 수 있어요.
           </div>
         </section>
@@ -68,10 +68,10 @@ export default function GuidePage() {
           </div>
           <div className="space-y-3">
             {studentSteps.map((s) => (
-              <StepCard key={s.n} {...s} color="bg-indigo-400" />
+              <StepCard key={s.n} {...s} color="bg-rose-400" />
             ))}
           </div>
-          <div className="mt-4 bg-indigo-100/60 rounded-2xl p-4 text-sm text-indigo-800 leading-relaxed">
+          <div className="mt-4 bg-rose-100/60 rounded-2xl p-4 text-sm text-rose-800 leading-relaxed">
             💡 <b>잘 가르치는 법</b> — 정답만 툭 던지지 말고, <b>왜 그런지</b>까지 알려줘요. AI 친구가 틀리게 알고 있으면 <b>이유를 들어</b> 고쳐 주면, 친구가 확실히 배워요!
           </div>
         </section>
@@ -80,12 +80,12 @@ export default function GuidePage() {
         <section className="text-center">
           <Link
             href="/login"
-            className="inline-block px-8 py-3.5 text-lg bg-gradient-to-r from-sky-400 to-indigo-400 text-white rounded-full hover:from-sky-500 hover:to-indigo-500 transition font-bold shadow-md active:scale-[0.98]"
+            className="inline-block px-8 py-3.5 text-lg bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-full hover:from-pink-500 hover:to-rose-500 transition font-bold shadow-md active:scale-[0.98]"
           >
             들어가기 🚀
           </Link>
           <p className="mt-3 text-sm text-gray-500">
-            앱이 궁금하다면 <Link href="/about" className="text-sky-600 font-bold hover:underline">소개 보기 →</Link>
+            앱이 궁금하다면 <Link href="/about" className="text-pink-600 font-bold hover:underline">소개 보기 →</Link>
           </p>
         </section>
 

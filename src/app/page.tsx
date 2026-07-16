@@ -20,8 +20,8 @@ export default function Home() {
   }, [status, session, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-sky-50">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-sky-500" />
+    <div className="min-h-screen flex items-center justify-center bg-pink-50">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-pink-500" />
     </div>
   );
 }

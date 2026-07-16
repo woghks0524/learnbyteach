@@ -31,7 +31,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-sky-100 via-sky-50 to-indigo-100">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-pink-100 via-pink-50 to-rose-100">
       <div className="w-full max-w-sm">
         {/* AI 친구들 인사 */}
         <div className="flex justify-center items-end -space-x-4 mb-4">
@@ -48,7 +48,7 @@ export default function LoginPage() {
           )}
           <div>
             <label className="block text-base font-medium text-gray-700 mb-1">아이디</label>
-            <div className="flex items-center border-2 border-sky-200 rounded-2xl focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100">
+            <div className="flex items-center border-2 border-pink-200 rounded-2xl focus-within:border-pink-400 focus-within:ring-2 focus-within:ring-pink-100">
               <input
                 type="text"
                 value={username}
@@ -66,19 +66,19 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 text-base border-2 border-sky-200 rounded-2xl focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+              className="w-full px-4 py-3 text-base border-2 border-pink-200 rounded-2xl focus:outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full py-3.5 text-lg bg-gradient-to-r from-sky-400 to-indigo-400 text-white rounded-full hover:from-sky-500 hover:to-indigo-500 transition font-bold shadow-md active:scale-[0.98]"
+            className="w-full py-3.5 text-lg bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-full hover:from-pink-500 hover:to-rose-500 transition font-bold shadow-md active:scale-[0.98]"
           >
             들어가기 🚀
           </button>
           <p className="text-center text-base text-gray-500">
             계정이 없으신가요?{" "}
-            <Link href="/register" className="text-sky-600 font-bold hover:underline">
+            <Link href="/register" className="text-pink-600 font-bold hover:underline">
               회원가입
             </Link>
           </p>
@@ -86,10 +86,10 @@ export default function LoginPage() {
 
         {/* 소개·사용법 바로가기 */}
         <div className="mt-5 flex items-center justify-center gap-2 text-sm">
-          <Link href="/about" className="px-4 py-2 rounded-full bg-white/70 text-gray-600 font-medium hover:text-sky-600 hover:bg-white transition shadow-sm">
+          <Link href="/about" className="px-4 py-2 rounded-full bg-white/70 text-gray-600 font-medium hover:text-pink-600 hover:bg-white transition shadow-sm">
             📖 서비스 소개
           </Link>
-          <Link href="/guide" className="px-4 py-2 rounded-full bg-white/70 text-gray-600 font-medium hover:text-sky-600 hover:bg-white transition shadow-sm">
+          <Link href="/guide" className="px-4 py-2 rounded-full bg-white/70 text-gray-600 font-medium hover:text-pink-600 hover:bg-white transition shadow-sm">
             💡 사용법
           </Link>
         </div>
