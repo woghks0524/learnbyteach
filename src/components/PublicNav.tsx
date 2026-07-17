@@ -6,7 +6,7 @@ export default function PublicNav({ active }: { active?: "about" | "guide" }) {
     <Link
       href={href}
       className={`px-3 py-1.5 rounded-full text-sm font-medium transition ${
-        active === key ? "bg-white text-pink-600 shadow-sm" : "text-gray-500 hover:text-pink-600"
+        active === key ? "bg-white text-sky-600 shadow-sm" : "text-gray-500 hover:text-sky-600"
       }`}
     >
       {label}
@@ -14,7 +14,7 @@ export default function PublicNav({ active }: { active?: "about" | "guide" }) {
   );
 
   return (
-    <nav className="sticky top-0 z-20 bg-pink-50/80 backdrop-blur border-b border-pink-100">
+    <nav className="sticky top-0 z-20 bg-sky-50/80 backdrop-blur border-b border-sky-100">
       <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <img src="/avatars/default.png" alt="" className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-sm" />
@@ -25,7 +25,7 @@ export default function PublicNav({ active }: { active?: "about" | "guide" }) {
           {link("/guide", "사용법", "guide")}
           <Link
             href="/login"
-            className="ml-1 px-4 py-1.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 transition shadow-sm"
+            className="ml-1 px-4 py-1.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-sky-400 to-indigo-400 hover:from-sky-500 hover:to-indigo-500 transition shadow-sm"
           >
             들어가기 🚀
           </Link>

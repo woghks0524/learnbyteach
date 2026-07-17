@@ -15,7 +15,7 @@ const traits = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-rose-50 text-gray-800">
+    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-indigo-50 text-gray-800">
       <PublicNav active="about" />
 
       <main className="max-w-3xl mx-auto px-4 py-10 sm:py-14">
@@ -28,7 +28,7 @@ export default function AboutPage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold mb-3">가르치며 배우기</h1>
           <p className="text-lg text-gray-600 leading-relaxed">
-            잘 모르는 <b className="text-pink-600">AI 친구</b>를 가르쳐 보세요.<br />
+            잘 모르는 <b className="text-sky-600">AI 친구</b>를 가르쳐 보세요.<br />
             남에게 설명하다 보면, 내가 진짜로 아는지 저절로 드러나요. ✨
           </p>
         </section>
@@ -77,12 +77,12 @@ export default function AboutPage() {
         <section className="mt-10 text-center">
           <Link
             href="/login"
-            className="inline-block px-8 py-3.5 text-lg bg-gradient-to-r from-pink-400 to-rose-400 text-white rounded-full hover:from-pink-500 hover:to-rose-500 transition font-bold shadow-md active:scale-[0.98]"
+            className="inline-block px-8 py-3.5 text-lg bg-gradient-to-r from-sky-400 to-indigo-400 text-white rounded-full hover:from-sky-500 hover:to-indigo-500 transition font-bold shadow-md active:scale-[0.98]"
           >
             지금 시작하기 🚀
           </Link>
           <p className="mt-3 text-sm text-gray-500">
-            처음이라면 <Link href="/guide" className="text-pink-600 font-bold hover:underline">사용법 먼저 보기 →</Link>
+            처음이라면 <Link href="/guide" className="text-sky-600 font-bold hover:underline">사용법 먼저 보기 →</Link>
           </p>
         </section>
 
